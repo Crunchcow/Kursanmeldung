@@ -1,0 +1,24 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Abmelden" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{% trans "Abmelden" %}</h4>
+            </div>
+            <div class="card-body">
+                <p>{% trans "Bist du sicher, dass du dich abmelden möchtest?" %}</p>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">{% trans "Abmelden" %}</button>
+                    <a href="/" class="btn btn-secondary ml-2">{% trans "Abbrechen" %}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

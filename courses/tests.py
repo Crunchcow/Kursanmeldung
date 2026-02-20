@@ -77,6 +77,16 @@ class CourseAccessTests(TestCase):
         response = self.client.get('/accounts/login/')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'card-header')
+        # registration link should be gone
+        self.assertNotContains(response, 'Registrieren')
+
+    def test_signup_route_disabled(self):
+        response = self.client.get('/accounts/signup/')
+        # with ACCOUNT_ALLOW_REGISTRATION=False the page is shown but contains
+        # no form and informs the user that neue Registrierung nicht möglich
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<form')
+        self.assertContains(response, 'Registrierung')
 
     def test_course_register_page_card(self):
         # create a simple course to register for
@@ -121,3 +131,12 @@ class CourseAccessTests(TestCase):
         response = self.client.get('/')
         self.assertContains(response, '<table', status_code=200)
         self.assertContains(response, '<th scope="col">Kurs</th>')
+
+    def test_logout_page_uses_card(self):
+        user = get_user_model().objects.create_user('foo', 'foo@example.com', 'pw')
+        user.is_staff = True
+        user.save()
+        self.client.force_login(user)
+        response = self.client.get('/accounts/logout/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'card-header')

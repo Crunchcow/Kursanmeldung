@@ -2,6 +2,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Course, Registration
 from django.utils.translation import gettext_lazy as _
 from .forms import RegistrationForm
+from allauth.account.adapter import DefaultAccountAdapter
+from django.core.exceptions import PermissionDenied
+
+
+class NoSignupAdapter(DefaultAccountAdapter):
+    """Custom adapter that blocks signup."""
+    def is_open_for_signup(self, request):
+        return False
 
 
 # frontend views

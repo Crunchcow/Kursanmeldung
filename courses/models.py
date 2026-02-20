@@ -93,6 +93,10 @@ class Course(models.Model):
         if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValidationError({'end_date': _('Enddatum darf nicht vor dem Startdatum liegen.')})
 
+    class Meta:
+        verbose_name = _('Kurs')
+        verbose_name_plural = _('Kurse')
+
 
 class Registration(models.Model):
     STATUS_CHOICES = [

@@ -153,7 +153,7 @@ class RegistrationAdmin(admin.ModelAdmin):
                 obj.created,
             ])
         return response
-    export_as_csv.short_description = "Export ausgewählter Anmeldungen als CSV"
+    export_as_csv.short_description = str(_('Anmeldungen als CSV exportieren'))
 
     # permission overrides for group-based access
     def has_module_permission(self, request):

@@ -1,5 +1,5 @@
 /* red and white admin theme */
-#header, .module h2, .breadcrumb, .paginator {
+#header, .module h2, .module h3, .breadcrumbs, .paginator, .submit-row {
     background-color: #c00000 !important;
     color: #fff !important;
 }
@@ -9,10 +9,39 @@
 #header a, #header a:hover, #header a:visited {
     color: #fff !important;
 }
+#nav-global a:hover, #nav-global a.selected {
+    background-color: #a00000 !important;
+    color: #fff !important;
+}
 body {
     background-color: #fff !important;
 }
 /* links and buttons */
-a, .button, input[type="submit"] {
+a {
     color: #c00000 !important;
+}
+.button, input[type="submit"], input[type="button"] {
+    background-color: #c00000 !important;
+    color: #fff !important;
+    border: none;
+}
+.button:hover, input[type="submit"]:hover, input[type="button"]:hover {
+    background-color: #a00000 !important;
+}
+.deletelink {
+    color: #c00000 !important;
+}
+/* form styling */
+.fieldBox {
+    border: 1px solid #c00000 !important;
+}
+.form-row.field-choices .fieldBox > label {
+    font-weight: normal;
+}
+.changelist-filter h2 {
+    background-color: #c00000 !important;
+    color: #fff !important;
+}
+.selected .fieldBox {
+    background-color: #f0e0e0;
 }

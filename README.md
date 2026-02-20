@@ -68,7 +68,7 @@ Da auf Windows oft keine GNU‑gettext installiert ist, kannst du die `.po`-Date
 
 ### Optik des Frontends
 
-Die Standard‑Anmeldeseiten von `django-allauth` waren sehr schlicht. In dieser Version gibt es eigene Templates unter `templates/account/` – das Login‑ und das Registrierungsformular erscheinen nun in einem Bootstrap‑Card, das sich optisch ans restliche Layout anpasst. Hinter den Kulissen sorgt das `DIRS`‑Setting dafür, dass diese Dateien die Vorlagen aus dem Paket überschreiben.
+Die Standard‑Allauth‑Seiten waren sehr schlicht. In dieser Version gibt es eigene Templates unter `templates/account/` – die Anmelde-, Registrierungs- **und Abmeldeseite** erscheinen nun in einem Bootstrap‑Card, das sich optisch ans restliche Layout anpasst. Hinter den Kulissen sorgt das `DIRS`‑Setting dafür, dass diese Dateien die Vorlagen aus dem Paket überschreiben.
 
 Standard‑Admin‑Login ist unter `/admin/` erreichbar – zusätzlich gibt es im Hauptmenü einen Link für staff‑Benutzer.
 

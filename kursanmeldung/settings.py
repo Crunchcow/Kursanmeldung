@@ -43,8 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.microsoft',
     # local
     'courses',
 ]
@@ -159,6 +157,13 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+# disallow public signup; users are created by staff
+ACCOUNT_ALLOW_REGISTRATION = False
+# Use custom adapter that blocks signup
+ACCOUNT_ADAPTER = 'courses.views.NoSignupAdapter'
+# redirect signup attempt to login page
+ACCOUNT_SIGNUP_REDIRECT_URL = '/accounts/login/'
+
 # Crispy forms
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -166,3 +171,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
