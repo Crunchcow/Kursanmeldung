@@ -1,0 +1,18 @@
+/* red and white admin theme */
+#header, .module h2, .breadcrumb, .paginator {
+    background-color: #c00000 !important;
+    color: #fff !important;
+}
+#header .branding a, #header .branding a:hover {
+    color: #fff !important;
+}
+#header a, #header a:hover, #header a:visited {
+    color: #fff !important;
+}
+body {
+    background-color: #fff !important;
+}
+/* links and buttons */
+a, .button, input[type="submit"] {
+    color: #c00000 !important;
+}

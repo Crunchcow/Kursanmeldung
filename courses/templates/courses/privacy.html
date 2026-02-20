@@ -1,0 +1,59 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Datenschutzbestimmungen" %}{% endblock %}
+
+{% block content %}
+<div class="privacy-policy">
+    <h1>{% trans "Datenschutzbestimmungen" %}</h1>
+
+    <section>
+        <h3>1. {% trans "Verantwortlicher" %}</h3>
+        <p>
+            {% blocktrans %}
+            Verantwortlich für die Datenverarbeitung im Rahmen der Kursanmeldung ist:<br>
+            <strong>SV Westfalia Osterwick</strong><br>
+            Lion-Weg 14<br>
+            48720 Rosendahl<br>
+            E-Mail: Lemke@westfalia-osterwick.de<br>
+            Vertreten durch den Vorstand: Daniel Kramer, Ingo Röschenkemper, Marie Schräder, Kai Lemke
+            {% endblocktrans %}
+        </p>
+    </section>
+
+    <section>
+        <h3>2. {% trans "Erhebung und Speicherung personenbezogener Daten" %}</h3>
+        <p>{% trans "Wenn Sie sich für einen unserer Kurse anmelden, erheben wir folgende Daten:" %}</p>
+        <ul>
+            <li><strong>{% trans "Identitätsdaten:" %}</strong> {% trans "Vorname, Nachname, Geburtsdatum." %}</li>
+            <li><strong>{% trans "Kontaktdaten:" %}</strong> {% trans "Anschrift, E-Mail-Adresse, Telefonnummer." %}</li>
+            <li><strong>{% trans "Zahlungsdaten:" %}</strong> {% trans "Kreditinstitut, IBAN, BIC (für SEPA-Lastschrift)." %}</li>
+        </ul>
+        <p>
+            {% trans "Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. b DSGVO zur Vertragserfüllung (Kursabwicklung und Gebühreneinzug)." %}
+        </p>
+    </section>
+
+    <section>
+        <h3>3. {% trans "Weitergabe von Daten" %}</h3>
+        <p>
+            {% trans "Ihre Zahlungsdaten werden zum Zweck des Gebühreneinzugs an unser Kreditinstitut weitergeleitet. Eine darüber hinausgehende Weitergabe an Dritte erfolgt nur, sofern dies zur Organisation des Sportbetriebs (z.B. Versicherungen/Verbände) zwingend erforderlich ist." %}
+        </p>
+    </section>
+
+    <section>
+        <h3>4. {% trans "Speicherdauer" %}</h3>
+        <p>
+            {% trans "Wir speichern Ihre Daten nur so lange, wie es für die Durchführung des Kurses und aufgrund gesetzlicher Aufbewahrungspflichten (z.B. 10 Jahre für steuerrelevante Belege gemäß AO/HGB) erforderlich ist." %}
+        </p>
+    </section>
+
+    <section>
+        <h3>5. {% trans "Ihre Rechte" %}</h3>
+        <p>{% trans "Sie haben das Recht auf Auskunft, Berichtigung, Löschung oder Einschränkung der Verarbeitung Ihrer gespeicherten Daten sowie ein Beschwerderecht bei einer Aufsichtsbehörde." %}</p>
+    </section>
+
+    <hr>
+    <p><small>{% trans "Hinweis: Die Datenübertragung auf dieser Seite erfolgt über eine verschlüsselte SSL-Verbindung." %}</small></p>
+</div>
+{% endblock %}
