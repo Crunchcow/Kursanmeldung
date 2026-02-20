@@ -21,13 +21,13 @@ from multiselectfield import MultiSelectField
 
 def week_days():
     return [
-        ('MO', 'Monday'),
-        ('TU', 'Tuesday'),
-        ('WE', 'Wednesday'),
-        ('TH', 'Thursday'),
-        ('FR', 'Friday'),
-        ('SA', 'Saturday'),
-        ('SU', 'Sunday'),
+        ('MO', 'Montag'),
+        ('TU', 'Dienstag'),
+        ('WE', 'Mittwoch'),
+        ('TH', 'Donnerstag'),
+        ('FR', 'Freitag'),
+        ('SA', 'Samstag'),
+        ('SU', 'Sonntag'),
     ]
 
 
@@ -44,7 +44,22 @@ class Course(models.Model):
     price_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Mitglied'))
     price_non_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Nicht-Mitglied'))
     allow_half = models.BooleanField(default=False, verbose_name=_('Halber Kurs erlaubt'))
+    # Text field for backwards compatibility / display. New code should
+    # use ``instructor_user`` to relate a course to an actual user account.
     instructor = models.CharField(max_length=200, blank=True, verbose_name=_('Kursleitung'))
+
+    # optional FK to a Django user who is responsible for the course.  Using a
+    # real user makes it easy to restrict admin access later on and avoids the
+    # fragile name/email comparison that would otherwise be necessary.
+    from django.conf import settings
+    instructor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Kursleitung (Benutzer)'),
+        help_text=_('Wähle den Benutzer, der für diesen Kurs verantwortlich ist.'),
+    )
 
     def __str__(self):
         return f"{self.name} ({self.start_date}–{self.end_date})"

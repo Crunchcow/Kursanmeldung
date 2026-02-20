@@ -67,7 +67,8 @@ ROOT_URLCONF = 'kursanmeldung.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # search project-wide templates folder first, then app directories
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'courses' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

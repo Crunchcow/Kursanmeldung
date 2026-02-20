@@ -15,11 +15,31 @@ class RegistrationInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'start_date', 'end_date', 'start_time', 'end_time', 'days', 'max_participants')
-    list_filter = ('days', 'locations', 'start_date')
+    list_display = ('name', 'instructor_user', 'start_date', 'end_date', 'start_time', 'end_time', 'days', 'max_participants')
+    list_filter = ('days', 'locations', 'start_date', 'instructor_user')
     inlines = [RegistrationInline]
     readonly_fields = ('session_count_display',)
     actions = ['export_attendance_list']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.groups.filter(name='Kursleitung').exists():
+            # limit to courses where the logged‑in user has been assigned
+            return qs.filter(instructor_user=request.user)
+        return qs
+
+    def has_change_permission(self, request, obj=None):
+        # Kursleitung may not change any data; they only need to list/export
+        if request.user.groups.filter(name='Kursleitung').exists():
+            if obj is None:
+                return True
+            return obj.instructor_user == request.user
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.groups.filter(name='Kursleitung').exists():
+            return False
+        return super().has_delete_permission(request, obj)
 
     def session_count_display(self, obj):
         return obj.session_count()
@@ -142,8 +162,15 @@ class RegistrationAdmin(admin.ModelAdmin):
             return True
         return super().has_module_permission(request)
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.groups.filter(name='Kursleitung').exists():
+            # only registrations for courses the user is responsible for
+            return qs.filter(course__instructor_user=request.user)
+        return qs
+
     def has_view_permission(self, request, obj=None):
-        # Kursleitung can view list
+        # Kursleitung can view list; object-level filtering happens in get_queryset
         if request.user.groups.filter(name='Kursleitung').exists():
             return True
         return super().has_view_permission(request, obj)

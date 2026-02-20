@@ -5,25 +5,46 @@
 
 {% block content %}
 <h1>{% trans "Verfügbare Kurse" %}</h1>
-{% for course in courses %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">{{ course.name }}</h5>
-            <p>{{ course.description }}</p>
-            <p>{% trans "Datum" %}: {{ course.start_date }} – {{ course.end_date }}</p>
-            <p>{% trans "Uhrzeit" %}: {{ course.start_time }} - {{ course.end_time }}</p>
-            <p>{% trans "Wochentage" %}: {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-            <p>{% trans "Einheiten" %}: {{ course.session_count }}</p>
-            <p>{% trans "Ort" %}: {% for loc in course.locations.all %}{{ loc.name }} {% if not forloop.last %}, {% endif %}{% endfor %}</p>
-            <p>{% trans "Preis Mitglied" %}: {{ course.price_member }}€</p>
-            <p>{% trans "Preis Nicht-Mitglied" %}: {{ course.price_non_member }}€</p>
-            {% if course.is_full %}
-                <span class="badge badge-warning">{% trans "Warteliste" %}</span>
-            {% endif %}
-            <a href="{% url 'course_register' course.id %}" class="btn btn-primary">{% trans "Anmelden" %}</a>
-        </div>
-    </div>
-{% empty %}
+{% if courses %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
+            <tr>
+                <th scope="col">{% trans "Kurs" %}</th>
+                <th scope="col">{% trans "Zeitraum" %}</th>
+                <th scope="col">{% trans "Uhrzeit" %}</th>
+                <th scope="col">{% trans "Wochentage" %}</th>
+                <th scope="col">{% trans "Ort" %}</th>
+                <th scope="col">{% trans "Preis M" %}</th>
+                <th scope="col">{% trans "Preis NM" %}</th>
+                <th scope="col">&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for course in courses %}
+            <tr>
+                <td>
+                    <strong>{{ course.name }}</strong><br>
+                    {% if course.description %}<small>{{ course.description }}</small>{% endif %}
+                </td>
+                <td>{{ course.start_date }} – {{ course.end_date }}</td>
+                <td>{{ course.start_time }} – {{ course.end_time }}</td>
+                <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                <td>{{ course.price_member }}€</td>
+                <td>{{ course.price_non_member }}€</td>
+                <td>
+                    {% if course.is_full %}
+                        <span class="badge badge-warning small">{% trans "Warteliste" %}</span><br>
+                    {% endif %}
+                    <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
     <p>{% trans "Keine Kurse verfügbar." %}</p>
-{% endfor %}
+{% endif %}
 {% endblock %}

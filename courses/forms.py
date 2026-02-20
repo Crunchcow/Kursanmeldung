@@ -1,12 +1,11 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 from .models import Registration
 
 
 class RegistrationForm(forms.ModelForm):
-    from django.utils.safestring import mark_safe
-    from django.urls import reverse_lazy
-
     accept_terms = forms.BooleanField(required=True)
 
     def __init__(self, *args, **kwargs):

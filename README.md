@@ -62,7 +62,13 @@ Da auf Windows oft keine GNU‑gettext installiert ist, kannst du die `.po`-Date
 ## Benutzer und Berechtigungen
 
 - **Abteilungsleitung / Admin:** staff‑Benutzer mit vollem Zugriff.
-- **Kursleitung:** lege eine Gruppe `Kursleitung` an (Admin → Benutzer → Gruppen). Mitglieder dieser Gruppe können nur Teilnehmerlisten sehen und als CSV exportieren, aber nichts ändern.
+- **Kursleitung:** lege eine Gruppe `Kursleitung` an (Admin → Benutzer → Gruppen). Mitglieder dieser Gruppe können nur Teilnehmerlisten sehen und als CSV exportieren, aber nichts ändern. Sie sehen dabei nur Kurse und Anmeldungen für diejenigen Kurse, die ihnen bei der Kursanlage als **Kursleitung (Benutzer)** zugewiesen wurden.
+
+> Beim Aktualisieren auf diese Version wird ein neues Feld "Kursleitung (Benutzer)" im Kurs‑Formular angezeigt. Du kannst bestehende Textwerte beibehalten, sie werden nicht automatisch konvertiert; es gibt aber eine Migrationsroutine, die versucht, Namen oder E‑Mail‑Adressen passenden Benutzern zuzuordnen. Trage die verbleibenden Zuweisungen manuell nach Bedarf ein.
+
+### Optik des Frontends
+
+Die Standard‑Anmeldeseiten von `django-allauth` waren sehr schlicht. In dieser Version gibt es eigene Templates unter `templates/account/` – das Login‑ und das Registrierungsformular erscheinen nun in einem Bootstrap‑Card, das sich optisch ans restliche Layout anpasst. Hinter den Kulissen sorgt das `DIRS`‑Setting dafür, dass diese Dateien die Vorlagen aus dem Paket überschreiben.
 
 Standard‑Admin‑Login ist unter `/admin/` erreichbar – zusätzlich gibt es im Hauptmenü einen Link für staff‑Benutzer.
 
