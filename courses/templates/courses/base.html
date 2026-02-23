@@ -44,7 +44,11 @@
     {% block content %}{% endblock %}
 </div>
 <footer class="text-center mt-4 mb-4">
-    <small><a href="{% url 'privacy' %}">{% trans "Datenschutzbestimmungen" %}</a></small>
+    <small>
+        <a href="{% url 'privacy' %}">{% trans "Datenschutzbestimmungen" %}</a>
+        &nbsp;|&nbsp;
+        <a href="{% url 'impressum' %}">{% trans "Impressum" %}</a>
+    </small>
 </footer>
 </body>
 </html>

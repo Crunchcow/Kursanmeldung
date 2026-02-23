@@ -35,4 +35,10 @@ class RegistrationForm(forms.ModelForm):
         cleaned = super().clean()
         if not cleaned.get('accept_terms'):
             raise forms.ValidationError("Du musst die Bedingungen akzeptieren.")
+        # IBAN basics: remove spaces, length between 15 and 34
+        iban = cleaned.get('iban')
+        if iban:
+            iban_nospace = iban.replace(' ', '')
+            if not (15 <= len(iban_nospace) <= 34):
+                self.add_error('iban', _('Bitte geben Sie eine gültige IBAN ein.'))
         return cleaned

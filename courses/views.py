@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from .forms import RegistrationForm
 from allauth.account.adapter import DefaultAccountAdapter
 from django.core.exceptions import PermissionDenied
+from django.contrib import messages
 
 
 class NoSignupAdapter(DefaultAccountAdapter):
@@ -31,6 +32,7 @@ def register(request, course_id):
             if course.is_full():
                 reg.status = 'WAITLIST'
             reg.save()
+            messages.success(request, _("Ihre Anmeldung war erfolgreich. Sie erhalten eine Bestätigung per E-Mail."))
             return redirect('course_list')
     else:
         form = RegistrationForm()
@@ -40,3 +42,8 @@ def register(request, course_id):
 def privacy(request):
     # simple privacy page; replace text with legal content
     return render(request, 'courses/privacy.html')
+
+
+def impressum(request):
+    """Einfache Impressumsseite."""
+    return render(request, 'courses/impressum.html')

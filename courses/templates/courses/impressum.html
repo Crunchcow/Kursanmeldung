@@ -1,0 +1,19 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Impressum" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{% trans "Impressum" %}</h1>
+    <p>SV Westfalia Osterwick 1923 e.V.<br>
+    Hauptstraße 46<br>
+    48720 Rosendahl</p>
+
+    <p><strong>{% trans "Vorstand" %}:</strong> Daniel Kramer, Marie Schräder, Peter Fedders, Eike Nonhoff.</p>
+
+    <p><strong>{% trans "Registergericht" %}:</strong> Amtsgericht Coesfeld, VR 315.</p>
+
+    <p><strong>{% trans "Kontakt" %}:</strong> Telefon 02547-933636, E-Mail <a href="mailto:webmaster@westfalia-osterwick.de">webmaster@westfalia-osterwick.de</a>.</p>
+</div>
+{% endblock %}
