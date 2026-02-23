@@ -20,14 +20,16 @@ class Location(models.Model):
 from multiselectfield import MultiSelectField
 
 def week_days():
+    # Werte (z. B. ‚Mo‘) werden im Datenfeld gespeichert; Label bleibt der volle
+    # Name. Wir verwenden deutsche Abkürzungen statt englischer.
     return [
-        ('MO', 'Montag'),
-        ('TU', 'Dienstag'),
-        ('WE', 'Mittwoch'),
-        ('TH', 'Donnerstag'),
-        ('FR', 'Freitag'),
-        ('SA', 'Samstag'),
-        ('SU', 'Sonntag'),
+        ('Mo', 'Montag'),
+        ('Di', 'Dienstag'),
+        ('Mi', 'Mittwoch'),
+        ('Do', 'Donnerstag'),
+        ('Fr', 'Freitag'),
+        ('Sa', 'Samstag'),
+        ('So', 'Sonntag'),
     ]
 
 
