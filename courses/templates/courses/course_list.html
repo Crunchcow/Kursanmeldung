@@ -24,11 +24,11 @@
         {% for course in courses %}
             <tr>
                 <td>
-                    <strong>{{ course.name }}</strong><br>
-                    {% if course.description %}<small>{{ course.description }}</small>{% endif %}
+                    <div><strong>{{ course.name }}</strong></div>
+                    {% if course.description %}<div><small>{{ course.description }}</small></div>{% endif %}
                 </td>
                 <td>{{ course.start_date }} – {{ course.end_date }}</td>
-                <td>{{ course.start_time }} – {{ course.end_time }}</td>
+                <td>{{ course.start_time }}&nbsp;–&nbsp;{{ course.end_time }}</td>
                 <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{{ course.price_member }}€</td>

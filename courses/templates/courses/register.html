@@ -20,12 +20,12 @@
                   <div class="alert alert-danger">{{ error }}</div>
                 {% endif %}
                 <div class="mb-3">
-                    <strong>{% trans "Datum" %}:</strong> {{ course.start_date }} – {{ course.end_date }}<br>
-                    <strong>{% trans "Uhrzeit" %}:</strong> {{ course.start_time }}–{{ course.end_time }}<br>
-                    <strong>{% trans "Wochentage" %}:</strong> {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}<br>
-                    <strong>{% trans "Einheiten" %}:</strong> {{ course.session_count }}<br>
-                    <strong>{% trans "Preis Mitglied" %}:</strong> {{ course.price_member }}€<br>
-                    <strong>{% trans "Preis Nicht-Mitglied" %}:</strong> {{ course.price_non_member }}€<br>
+                    <div><strong>{% trans "Datum" %}:</strong> {{ course.start_date }} – {{ course.end_date }}</div>
+                    <div><strong>{% trans "Uhrzeit" %}:</strong> {{ course.start_time }}–{{ course.end_time }}</div>
+                    <div><strong>{% trans "Wochentage" %}:</strong> {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    <div><strong>{% trans "Einheiten" %}:</strong> {{ course.session_count }}</div>
+                    <div><strong>{% trans "Preis Mitglied" %}:</strong> {{ course.price_member }}€</div>
+                    <div><strong>{% trans "Preis Nicht-Mitglied" %}:</strong> {{ course.price_non_member }}€</div>
                 </div>
                 <form method="post" id="regform">
                     {% csrf_token %}
