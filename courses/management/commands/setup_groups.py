@@ -25,8 +25,19 @@ class Command(BaseCommand):
             content_type=course_ct,
             codename='view_course'
         )
-        
+        change_registration_perm = Permission.objects.get(
+            content_type=registration_ct,
+            codename='change_registration'
+        )
+
         kursleitung_group.permissions.add(view_registration_perm, view_course_perm)
         self.stdout.write(self.style.SUCCESS('Added permissions to Kursleitung group'))
-        
+
+        # create Kassierer group with view+change on registrations so actions appear
+        kassierer_group, created = Group.objects.get_or_create(name='Kassierer')
+        if created:
+            self.stdout.write(self.style.SUCCESS('Created group: Kassierer'))
+        kassierer_group.permissions.add(view_registration_perm, change_registration_perm)
+        self.stdout.write(self.style.SUCCESS('Added permissions to Kassierer group'))
+
         self.stdout.write(self.style.SUCCESS('Setup complete!'))

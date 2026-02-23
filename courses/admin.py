@@ -130,7 +130,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('course', 'first_name', 'last_name', 'email', 'status', 'terms_accepted')
     list_filter = ('status', 'course')
     search_fields = ('first_name', 'last_name', 'email')
-    actions = ['export_as_csv']
+    actions = ['export_as_csv', 'export_debits']
 
     def export_as_csv(self, request, queryset):
         import csv
@@ -155,10 +155,47 @@ class RegistrationAdmin(admin.ModelAdmin):
         return response
     export_as_csv.short_description = str(_('Anmeldungen als CSV exportieren'))
 
+    def export_debits(self, request, queryset):
+        """CSV für den Kassierer: nur die wirklich nötigen Daten, semikolongetrennt
+        (wir verwenden `;` weil Excel in Deutschland sonst Probleme mit
+        Kommas in Zahlen hat)."""
+        import csv
+        from django.http import HttpResponse
+
+        # Felder, wie sie in der ersten Zeile stehen sollen
+        headers = [
+            str(_('Kurs')),
+            str(_('Vorname')),
+            str(_('Nachname')),
+            str(_('IBAN')),
+            str(_('BIC')),
+            str(_('Kontoinhaber')),
+            str(_('Betrag')),
+        ]
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=einzuege.csv'
+        # Excel-kompatibler Separator
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(headers)
+        for reg in queryset.filter(status='CONFIRMED'):
+            amount = '{:.2f}'.format(reg.total_price()).replace('.', ',')
+            writer.writerow([
+                reg.course.name,
+                reg.first_name,
+                reg.last_name,
+                reg.iban,
+                reg.bic or '',
+                reg.account_holder,
+                amount,
+            ])
+        return response
+    export_debits.short_description = _('Einzüge als CSV exportieren')
+
     # permission overrides for group-based access
     def has_module_permission(self, request):
-        # Kursleitung can view the module/app
-        if request.user.groups.filter(name='Kursleitung').exists():
+        # Kursleitung or Kassierer can view the module/app
+        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return True
         return super().has_module_permission(request)
 
@@ -170,8 +207,8 @@ class RegistrationAdmin(admin.ModelAdmin):
         return qs
 
     def has_view_permission(self, request, obj=None):
-        # Kursleitung can view list; object-level filtering happens in get_queryset
-        if request.user.groups.filter(name='Kursleitung').exists():
+        # Kursleitung and Kassierer can view list; object-level filtering happens in get_queryset
+        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return True
         return super().has_view_permission(request, obj)
 
@@ -180,13 +217,14 @@ class RegistrationAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        # Kursleitung group can view and export only
-        if request.user.groups.filter(name='Kursleitung').exists():
+        # Kursleitung or Kassierer may not edit individual registrations but need
+        # change perm to see actions on the changelist.
+        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False if obj else True
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        # only non-Kursleitung staff can delete
-        if request.user.groups.filter(name='Kursleitung').exists():
+        # only staff outside Kursleitung/Kassierer may delete
+        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False
         return super().has_delete_permission(request, obj)
