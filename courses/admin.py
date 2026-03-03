@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html
 from .models import Location, Course, Registration
 
 
@@ -15,11 +16,33 @@ class RegistrationInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'instructor_user', 'start_date', 'end_date', 'start_time', 'end_time', 'days', 'max_participants')
-    list_filter = ('days', 'locations', 'start_date', 'instructor_user')
+    list_display = (
+        'name', 'instructor_user', 'start_date', 'end_date',
+        'start_time', 'end_time', 'days', 'max_participants',
+        'utilization_display', 'is_closed',
+    )
+    list_editable = ('is_closed',)
+    list_filter = ('is_closed', 'days', 'locations', 'start_date', 'instructor_user')
     inlines = [RegistrationInline]
     readonly_fields = ('session_count_display',)
     actions = ['export_attendance_list']
+
+    def utilization_display(self, obj):
+        confirmed = obj.current_registrations()
+        total = obj.max_participants
+        pct = int(confirmed / total * 100) if total else 0
+        if pct >= 100:
+            color = '#c00000'
+        elif pct >= 75:
+            color = '#e67e00'
+        else:
+            color = '#2e7d32'
+        return format_html(
+            '<span style="color:{};font-weight:bold;">{}/{}</span> '
+            '<span style="color:#888;font-size:0.85em;">({}&nbsp;%)</span>',
+            color, confirmed, total, pct,
+        )
+    utilization_display.short_description = _('Auslastung')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -130,7 +153,15 @@ class RegistrationAdmin(admin.ModelAdmin):
     list_display = ('course', 'first_name', 'last_name', 'email', 'status', 'terms_accepted')
     list_filter = ('status', 'course')
     search_fields = ('first_name', 'last_name', 'email')
-    actions = ['export_as_csv', 'export_debits']
+    actions = ['export_as_csv', 'export_debits', 'export_wiso_meinverein']
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        # WISO-Export enthält IBAN/BIC – nur Kassierer und Superuser dürfen ihn sehen
+        is_kassierer = request.user.groups.filter(name='Kassierer').exists()
+        if not (request.user.is_superuser or is_kassierer):
+            actions.pop('export_wiso_meinverein', None)
+        return actions
 
     def export_as_csv(self, request, queryset):
         import csv
@@ -191,6 +222,69 @@ class RegistrationAdmin(admin.ModelAdmin):
             ])
         return response
     export_debits.short_description = _('Einzüge als CSV exportieren')
+
+    def export_wiso_meinverein(self, request, queryset):
+        """Exportiert bestätigte Anmeldungen als CSV-Datei im Format von
+        WISO MeinVerein (Buhl) für den SEPA-Lastschrift-Import.
+
+        Pflichtfelder laut WisoMeinVerein:
+          Vorname, Nachname, IBAN, BIC, Kontoinhaber,
+          Betrag, Verwendungszweck, Mandatsreferenz, Mandatsdatum
+        """
+        from django.contrib import messages
+        from django.http import HttpResponse
+        import csv
+
+        # Hard-Guard: IBAN/BIC sind datenschutzrelevant – Zugriff nur für Kassierer/Superuser
+        is_kassierer = request.user.groups.filter(name='Kassierer').exists()
+        if not (request.user.is_superuser or is_kassierer):
+            self.message_user(request, _('Sie haben keine Berechtigung für diesen Export.'), messages.ERROR)
+            return
+
+        headers = [
+            'Vorname',
+            'Nachname',
+            'IBAN',
+            'BIC',
+            'Kontoinhaber',
+            'Betrag',
+            'Verwendungszweck',
+            'Mandatsreferenz',
+            'Mandatsdatum',
+        ]
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+        response['Content-Disposition'] = 'attachment; filename=wiso_meinverein_lastschriften.csv'
+        # WisoMeinVerein erwartet Semikolon als Trennzeichen
+        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(headers)
+
+        for reg in queryset.filter(status='CONFIRMED'):
+            # Betrag im deutschen Format (Komma als Dezimaltrennzeichen)
+            amount = '{:.2f}'.format(reg.total_price()).replace('.', ',')
+            # Mandatsdatum = Datum der Kursanmeldung (= Erteilung des SEPA-Mandats)
+            mandate_date = reg.created.strftime('%d.%m.%Y')
+            # Eindeutige Mandatsreferenz aus Kürzel + Anmelde-ID
+            mandate_ref = f'KURS-{reg.id:06d}'
+            # Verwendungszweck: Kursname + ggf. Halber Kurs
+            purpose_parts = [reg.course.name]
+            if reg.half_course and reg.course.allow_half:
+                purpose_parts.append('(Halber Kurs)')
+            purpose = ' '.join(purpose_parts)
+
+            writer.writerow([
+                reg.first_name,
+                reg.last_name,
+                reg.iban,
+                reg.bic or '',
+                reg.account_holder,
+                amount,
+                purpose,
+                mandate_ref,
+                mandate_date,
+            ])
+        return response
+    export_wiso_meinverein.short_description = _('WISO MeinVerein – SEPA-Lastschriften exportieren')
 
     # permission overrides for group-based access
     def has_module_permission(self, request):

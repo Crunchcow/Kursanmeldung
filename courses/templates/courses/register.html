@@ -19,6 +19,12 @@
                 {% if error %}
                   <div class="alert alert-danger">{{ error }}</div>
                 {% endif %}
+                {% if course.is_full %}
+                <div class="alert alert-warning">
+                    <strong>{% trans "Dieser Kurs ist ausgebucht." %}</strong>
+                    {% trans "Ihre Anmeldung landet automatisch auf der Warteliste. Sie werden benachrichtigt, sobald ein Platz frei wird." %}
+                </div>
+                {% endif %}
                 <div class="mb-3">
                     <div><strong>{% trans "Datum" %}:</strong> {{ course.start_date }} – {{ course.end_date }}</div>
                     <div><strong>{% trans "Uhrzeit" %}:</strong> {{ course.start_time }}–{{ course.end_time }}</div>
@@ -41,20 +47,29 @@
 </div>
 <script>
 (function(){
+    // IBAN live formatieren: Leerzeichen alle 4 Zeichen, Großbuchstaben
+    var ibanInput = document.getElementById('id_iban');
+    if(ibanInput){
+        ibanInput.addEventListener('input', function(){
+            var raw = this.value.replace(/\s+/g, '').toUpperCase();
+            var formatted = raw.match(/.{1,4}/g);
+            this.value = formatted ? formatted.join(' ') : raw;
+        });
+    }
+
     var memberCheckbox = document.getElementById('id_is_member');
     var halfCheckbox = document.getElementById('id_half_course');
     var priceMember = parseFloat('{{ course.price_member }}');
     var priceNon = parseFloat('{{ course.price_non_member }}');
-    // sessions count no longer affects price
     function updatePrice(){
+        if(!memberCheckbox) return;
         var base = memberCheckbox.checked ? priceMember : priceNon;
-        if(halfCheckbox.checked){ base = base/2; }
+        if(halfCheckbox && halfCheckbox.checked){ base = base/2; }
         document.getElementById('selected-price').textContent = base.toFixed(2);
         document.getElementById('price-summary').style.display = 'block';
     }
-    memberCheckbox.addEventListener('change', updatePrice);
-    halfCheckbox.addEventListener('change', updatePrice);
-    // initial
+    if(memberCheckbox) memberCheckbox.addEventListener('change', updatePrice);
+    if(halfCheckbox) halfCheckbox.addEventListener('change', updatePrice);
     updatePrice();
 })();
 </script>

@@ -24,18 +24,33 @@ def course_list(request):
 
 def register(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+
+    # Anmeldung gesperrt → sofort zurück mit Fehlermeldung
+    if course.is_closed:
+        messages.error(request, _("Die Anmeldung für diesen Kurs ist derzeit geschlossen."))
+        return redirect('course_list')
+
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = RegistrationForm(request.POST, course=course)
         if form.is_valid():
+            email = form.cleaned_data['email']
+            # Doppel-Anmeldung verhindern
+            if Registration.objects.filter(course=course, email__iexact=email).exists():
+                messages.error(request, _("Mit dieser E-Mail-Adresse besteht bereits eine Anmeldung für diesen Kurs."))
+                return render(request, 'courses/register.html', {'course': course, 'form': form})
             reg = form.save(commit=False)
             reg.course = course
+            reg.terms_accepted = True  # accept_terms wurde im Formular validiert
             if course.is_full():
                 reg.status = 'WAITLIST'
             reg.save()
-            messages.success(request, _("Ihre Anmeldung war erfolgreich. Sie erhalten eine Bestätigung per E-Mail."))
+            if reg.status == 'WAITLIST':
+                messages.warning(request, _("Der Kurs ist leider ausgebucht. Sie wurden auf die Warteliste gesetzt."))
+            else:
+                messages.success(request, _("Ihre Anmeldung war erfolgreich!"))
             return redirect('course_list')
     else:
-        form = RegistrationForm()
+        form = RegistrationForm(course=course)
     return render(request, 'courses/register.html', {'course': course, 'form': form})
 
 

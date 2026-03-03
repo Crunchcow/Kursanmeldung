@@ -46,6 +46,11 @@ class Course(models.Model):
     price_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Mitglied'))
     price_non_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Nicht-Mitglied'))
     allow_half = models.BooleanField(default=False, verbose_name=_('Halber Kurs erlaubt'))
+    is_closed = models.BooleanField(
+        default=False,
+        verbose_name=_('Anmeldung gesperrt'),
+        help_text=_('Wenn aktiv, können sich keine neuen Teilnehmer anmelden.'),
+    )
     # Text field for backwards compatibility / display. New code should
     # use ``instructor_user`` to relate a course to an actual user account.
     instructor = models.CharField(max_length=200, blank=True, verbose_name=_('Kursleitung'))
@@ -72,12 +77,17 @@ class Course(models.Model):
     def is_full(self):
         return self.current_registrations() >= self.max_participants
 
+    def free_spots(self):
+        """Gibt die Anzahl freier Plätze zurück (niemals negativ)."""
+        return max(0, self.max_participants - self.current_registrations())
+
     def session_count(self):
         """Count how many class sessions occur between start_date and end_date based on selected weekdays."""
         if not (self.start_date and self.end_date):
             return 0
-        day_map = {'MO':0,'TU':1,'WE':2,'TH':3,'FR':4,'SA':5,'SU':6}
-        desired = {day_map[d] for d in self.days} if self.days else set()
+        # Kürzel müssen den gespeicherten Werten aus week_days() entsprechen (deutsch)
+        day_map = {'Mo': 0, 'Di': 1, 'Mi': 2, 'Do': 3, 'Fr': 4, 'Sa': 5, 'So': 6}
+        desired = {day_map[d] for d in self.days if d in day_map} if self.days else set()
         if not desired:
             return 0
         count = 0
@@ -134,3 +144,27 @@ class Registration(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.course.name}"
+
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+
+
+@receiver(post_delete, sender=Registration)
+def promote_from_waitlist(sender, instance, **kwargs):
+    """Wenn eine bestätigte Anmeldung gelöscht wird und der Kurs nicht mehr voll
+    ist, rückt automatisch die älteste Wartelisten-Anmeldung nach."""
+    if instance.status != 'CONFIRMED':
+        return
+    course = instance.course
+    if course.is_full():
+        return
+    next_waiting = (
+        Registration.objects
+        .filter(course=course, status='WAITLIST')
+        .order_by('created')
+        .first()
+    )
+    if next_waiting:
+        next_waiting.status = 'CONFIRMED'
+        next_waiting.save(update_fields=['status'])

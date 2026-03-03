@@ -34,10 +34,16 @@
                 <td>{{ course.price_member }}€</td>
                 <td>{{ course.price_non_member }}€</td>
                 <td>
-                    {% if course.is_full %}
-                        <span class="badge badge-warning small">{% trans "Warteliste" %}</span><br>
+                    {% if course.is_closed %}
+                        <span class="badge badge-secondary">{% trans "Anmeldung geschlossen" %}</span>
+                    {% elif course.is_full %}
+                        <span class="badge badge-warning">{% trans "Warteliste" %}</span><br>
+                        <small class="text-muted">{% trans "Kurs ausgebucht" %}</small><br>
+                        <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-outline-secondary mt-1">{% trans "Auf Warteliste" %}</a>
+                    {% else %}
+                        <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span><br>
+                        <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
                     {% endif %}
-                    <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
                 </td>
             </tr>
         {% endfor %}
