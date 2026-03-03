@@ -10,6 +10,20 @@
         .navbar { background-color: #c00000; }
         .navbar .nav-link { color: #fff !important; }
         .btn-primary { background-color: #c00000; border-color: #c00000; }
+        
+        /* Tabellen-Optimierung für Kursliste */
+        .table td, .table th { 
+            vertical-align: middle; 
+            white-space: nowrap;
+        }
+        .table td:first-child { 
+            white-space: normal; 
+            min-width: 180px;
+        }
+        .table td:nth-child(2) { min-width: 130px; } /* Zeitraum */
+        .table td:nth-child(3) { min-width: 100px; } /* Uhrzeit */
+        .table td:last-child { white-space: normal; min-width: 120px; }
+        .table { font-size: 0.95rem; }
     </style>
 </head>
 <body>
