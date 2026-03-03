@@ -12,18 +12,30 @@
         .btn-primary { background-color: #c00000; border-color: #c00000; }
         
         /* Tabellen-Optimierung für Kursliste */
+        .table { 
+            font-size: 0.9rem; 
+            table-layout: fixed;
+            width: 100%;
+        }
         .table td, .table th { 
-            vertical-align: middle; 
-            white-space: nowrap;
+            vertical-align: middle;
+            padding: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .table td:first-child { 
-            white-space: normal; 
-            min-width: 180px;
+        /* Spaltenbreiten optimiert für 1920px */
+        .table td:nth-child(1), .table th:nth-child(1) { width: 22%; white-space: normal; } /* Kurs */
+        .table td:nth-child(2), .table th:nth-child(2) { width: 16%; white-space: nowrap; } /* Zeitraum */
+        .table td:nth-child(3), .table th:nth-child(3) { width: 10%; white-space: nowrap; } /* Uhrzeit */
+        .table td:nth-child(4), .table th:nth-child(4) { width: 8%; } /* Wochentage */
+        .table td:nth-child(5), .table th:nth-child(5) { width: 14%; } /* Ort */
+        .table td:nth-child(6), .table th:nth-child(6) { width: 9%; text-align: right; } /* Preis Mitglied */
+        .table td:nth-child(7), .table th:nth-child(7) { width: 9%; text-align: right; } /* Preis Nicht-Mitglied */
+        .table td:nth-child(8), .table th:nth-child(8) { width: 12%; white-space: normal; } /* Aktion */
+        
+        @media (max-width: 1400px) {
+            .table { font-size: 0.85rem; }
         }
-        .table td:nth-child(2) { min-width: 130px; } /* Zeitraum */
-        .table td:nth-child(3) { min-width: 100px; } /* Uhrzeit */
-        .table td:last-child { white-space: normal; min-width: 120px; }
-        .table { font-size: 0.95rem; }
     </style>
 </head>
 <body>
