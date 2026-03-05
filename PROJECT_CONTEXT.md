@@ -2,30 +2,33 @@
 
 ## 🖥 Server-Infrastruktur (Hetzner)
 - **IP:** `89.167.0.28`
+- **Hostname:** `WestfaliaOsterwick`
+- **OS:** Ubuntu 24.04.3 LTS
 - **URL:** http://89.167.0.28/
-- **Zugang:** SSH als root
-- **Repo auf Server:** Wurde manuell hochgeladen + git pull für Updates
-- **Stack:** Nginx als Reverse Proxy, Gunicorn als WSGI-Server
-- **Docker:** docker-compose.yml vorhanden (seit 05.03.2026), ob Docker aktiv ist → `docker ps` auf dem Server prüfen
-- **App-Pfad (vermutlich):** `/opt/kursanmeldung` oder `/root/kursanmeldung` → `find / -name manage.py 2>/dev/null`
-- **Datenbank:** SQLite (`db.sqlite3` liegt direkt im Repo-Ordner)
-- **Secrets:** `.env` Datei auf dem Server (nicht im Repo), basierend auf `.env.example`
+- **Zugang:** `ssh root@89.167.0.28`
+- **App-Pfad:** `/var/www/kursanmeldung/`
+- **Datenbank:** SQLite – `/var/www/kursanmeldung/db.sqlite3`
+- **Secrets:** `/var/www/kursanmeldung/.env` (nicht im Repo)
+- **Venv:** `/var/www/kursanmeldung/.venv/`
 
-### Update-Prozess (sobald Pfad bekannt)
+### Stack
+- **Nginx** als Reverse Proxy (Config: `/etc/nginx/sites-enabled/kursanmeldung`)
+  - Static files direkt von `/var/www/kursanmeldung/staticfiles/`
+  - Alles andere → Proxy zu `127.0.0.1:8000`
+- **Gunicorn** als WSGI-Server (3 Worker, Port 8000, läuft als Prozess)
+  - Kein Docker! Läuft direkt auf dem Host.
+  - Neustart: `kill -HUP $(pgrep -f 'gunicorn kursanmeldung' | head -1)`
+
+### Update-Prozess (bei jedem Push)
 ```bash
 ssh root@89.167.0.28
-cd /pfad/zum/repo
+cd /var/www/kursanmeldung
 git pull origin main
-# bei Docker:
-docker compose up -d --build
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py collectstatic --noinput
-# ohne Docker (manuell):
 source .venv/bin/activate
 pip install -r requirements.txt
-python manage.py migrate
+python manage.py migrate --noinput
 python manage.py collectstatic --noinput
-systemctl restart gunicorn   # oder: supervisorctl restart gunicorn
+kill -HUP $(pgrep -f 'gunicorn kursanmeldung' | head -1)
 ```
 
 ---
