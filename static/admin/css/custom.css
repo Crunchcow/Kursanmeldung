@@ -53,8 +53,8 @@
   --hairline-color:     #ccc;
 
   /* Tabellen-Zeilen alternierend */
-  --even-row-color:     #e8e8e8;
-  --odd-row-color:      #f5f5f5;
+  --even-row-color:     #d8d8d8;
+  --odd-row-color:      #f0f0f0;
 }
 
 body {
@@ -62,18 +62,32 @@ body {
   color: var(--body-fg) !important;
 }
 
-/* Alternierende Tabellenzeilen */
+/* ── Startseite: Modell-Zeilen im App-Block ── */
+.module table tr:nth-child(odd) td,
+.module table tr:nth-child(odd) th {
+  background-color: #f0f0f0;
+}
+.module table tr:nth-child(even) td,
+.module table tr:nth-child(even) th {
+  background-color: #d8d8d8;
+}
+.module table tr:hover td,
+.module table tr:hover th {
+  background-color: #f8d0d0 !important;
+}
+
+/* ── Changelist (Ändern-Seite) ── */
 #result_list tr.row1 td,
 #result_list tr.row1 th {
-  background-color: #f5f5f5;
+  background-color: #f0f0f0;
 }
 #result_list tr.row2 td,
 #result_list tr.row2 th {
-  background-color: #e0e0e0;
+  background-color: #d8d8d8;
 }
 #result_list tr:hover td,
 #result_list tr:hover th {
-  background-color: #fce8e8 !important;
+  background-color: #f8d0d0 !important;
 }
 
 .deletelink, .deletelink:visited {
