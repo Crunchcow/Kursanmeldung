@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# deploy.sh – Auf dem Hetzner-Server ausführen
+# deploy.sh – Auf dem Hetzner-Server ausführen: bash /var/www/kursanmeldung/deploy.sh
 set -euo pipefail
+
+cd /var/www/kursanmeldung
 
 echo "==> Aktuellen Code holen..."
 git pull origin main
 
-echo "==> Docker-Image neu bauen..."
-docker compose build --no-cache
-
-echo "==> Container neu starten (zero-downtime)..."
-docker compose up -d --remove-orphans
+echo "==> Abhängigkeiten installieren..."
+source .venv/bin/activate
+pip install -r requirements.txt --quiet
 
 echo "==> Datenbankmigrationen ausführen..."
-docker compose exec web python manage.py migrate --noinput
+python manage.py migrate --noinput
 
 echo "==> Static files sammeln..."
-docker compose exec web python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput
 
-echo "==> Alte Images aufräumen..."
-docker image prune -f
+echo "==> Gunicorn neu laden..."
+kill -HUP $(pgrep -f 'gunicorn kursanmeldung' | head -1)
 
 echo "✅ Deployment abgeschlossen!"
