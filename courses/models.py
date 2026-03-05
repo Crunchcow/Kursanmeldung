@@ -170,3 +170,36 @@ def promote_from_waitlist(sender, instance, **kwargs):
     if next_waiting:
         next_waiting.status = 'CONFIRMED'
         next_waiting.save(update_fields=['status'])
+        _send_waitlist_promotion_email(next_waiting)
+
+
+def _send_waitlist_promotion_email(registration):
+    """Benachrichtigt einen Wartelistenplatz-Nachrücker per E-Mail."""
+    from django.core.mail import send_mail
+    from django.template.loader import render_to_string
+    from django.conf import settings as django_settings
+    from django.urls import reverse
+
+    cancel_url = (
+        django_settings.SITE_URL.rstrip('/')
+        + reverse('course_cancel', args=[registration.cancel_token])
+    )
+    days = ', '.join(registration.course.days)
+    locations = ', '.join(loc.name for loc in registration.course.locations.all())
+
+    subject = render_to_string(
+        'courses/email/waitlist_promotion_subject.txt',
+        {'registration': registration},
+    ).strip()
+    body = render_to_string(
+        'courses/email/waitlist_promotion_body.txt',
+        {'registration': registration, 'cancel_url': cancel_url,
+         'days': days, 'locations': locations},
+    )
+    send_mail(
+        subject,
+        body,
+        django_settings.DEFAULT_FROM_EMAIL,
+        [registration.email],
+        fail_silently=True,
+    )
