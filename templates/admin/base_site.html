@@ -1,5 +1,13 @@
-{% extends "admin/base_site.html" %}
-{% load static %}
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }} | {% trans "Kursanmeldung Verwaltung" %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">{% trans "Kursanmeldung" %}</a>
+</h1>
+{% endblock %}
 
 {% block extrahead %}
     {{ block.super }}
