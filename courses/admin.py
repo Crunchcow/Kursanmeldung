@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.http import urlencode
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from .models import Location, Course, Registration
 
 
@@ -22,7 +22,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'start_date', 'end_date',
         'start_time', 'end_time', 'days',
-        'utilization_display', 'registrations_link', 'is_closed',
+        'utilization_display', 'registrations_link', 'attendance_export_link', 'is_closed',
     )
     list_editable = ('is_closed',)
     list_filter = ('is_closed', 'days', 'locations', 'start_date', 'instructor_user')
@@ -60,6 +60,45 @@ class CourseAdmin(admin.ModelAdmin):
         return format_html('<a href="{}">{} &rarr;</a>', url, label)
     registrations_link.short_description = _('Anmeldungen')
     registrations_link.admin_order_field = None
+
+    def attendance_export_link(self, obj):
+        url = reverse('admin:courses_course_export_attendance', args=[obj.pk])
+        return format_html(
+            '<a class="button" href="{}" '
+            'style="background:#c00000;color:#fff;padding:3px 10px;'
+            'border-radius:4px;white-space:nowrap;font-size:0.85em;'
+            'text-decoration:none;">'
+            '&#8595; Excel</a>',
+            url
+        )
+    attendance_export_link.short_description = _('Anwesenheitsliste')
+    attendance_export_link.admin_order_field = None
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                '<int:course_id>/export-attendance/',
+                self.admin_site.admin_view(self.export_attendance_direct),
+                name='courses_course_export_attendance',
+            ),
+        ]
+        return custom + urls
+
+    def export_attendance_direct(self, request, course_id):
+        """Direkt-Download der Anwesenheitsliste für einen einzelnen Kurs."""
+        from django.shortcuts import get_object_or_404
+        course = get_object_or_404(Course, pk=course_id)
+        # Kursleitung darf nur eigene Kurse exportieren
+        if (
+            request.user.groups.filter(name='Kursleitung').exists()
+            and course.instructor_user != request.user
+        ):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        from django.contrib.admin import ModelAdmin
+        qs = Course.objects.filter(pk=course_id)
+        return self.export_attendance_list(request, qs)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
