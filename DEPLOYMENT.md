@@ -23,6 +23,18 @@ kill -HUP $(pgrep -f 'gunicorn kursanmeldung' | head -1)
 
 Der letzte Befehl lädt Gunicorn graceful neu (keine Downtime).
 
+### Minimalbefehle je nach Änderungstyp
+
+| Was geändert? | Befehle nötig |
+|---|---|
+| Nur Templates (`.html`) | `git pull` + `kill -HUP` |
+| Python-Code (views, models) | `git pull` + `kill -HUP` |
+| Neue Migration | + `python manage.py migrate` |
+| Neues Paket in `requirements.txt` | + `pip install -r requirements.txt` |
+| CSS/JS in `static/` | + `python manage.py collectstatic --noinput` |
+
+> **Hinweis:** `git pull` allein reicht nie – Gunicorn cached Templates und Python-Code im Speicher (DEBUG=False). Immer `kill -HUP` ausführen.
+
 ---
 
 ## Nützliche Befehle auf dem Server
