@@ -1,10 +1,26 @@
 {% extends 'courses/base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Kurse" %}{% endblock %}
 
 {% block content %}
 <h1>{% trans "Verfügbare Kurse" %}</h1>
+
+{# ── Kursplan-Übersicht ── #}
+<div class="mb-4">
+  <button class="btn btn-outline-secondary btn-sm mb-2" type="button"
+          data-toggle="collapse" data-target="#kursplanBild"
+          aria-expanded="false" aria-controls="kursplanBild">
+    📅 {% trans "Kursplan als Übersicht anzeigen" %}
+  </button>
+  <div class="collapse" id="kursplanBild">
+    <img src="{% static 'courses/img/kursplan.jpg' %}"
+         alt="{% trans 'Kursplan Breitensport' %}"
+         class="img-fluid rounded shadow-sm"
+         style="max-width: 960px; width: 100%;">
+  </div>
+</div>
+
 {% if courses %}
 
 {# ── Desktop-Tabelle (ab md) ── #}
