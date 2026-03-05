@@ -82,23 +82,26 @@ class Course(models.Model):
         """Gibt die Anzahl freier Plätze zurück (niemals negativ)."""
         return max(0, self.max_participants - self.current_registrations())
 
-    def session_count(self):
-        """Count how many class sessions occur between start_date and end_date based on selected weekdays."""
+    def session_dates(self):
+        """Gibt eine Liste aller Kurstermin-Daten zurück (datetime.date)."""
+        from datetime import timedelta
         if not (self.start_date and self.end_date):
-            return 0
-        # Kürzel müssen den gespeicherten Werten aus week_days() entsprechen (deutsch)
+            return []
         day_map = {'Mo': 0, 'Di': 1, 'Mi': 2, 'Do': 3, 'Fr': 4, 'Sa': 5, 'So': 6}
         desired = {day_map[d] for d in self.days if d in day_map} if self.days else set()
         if not desired:
-            return 0
-        count = 0
+            return []
+        dates = []
         current = self.start_date
-        from datetime import timedelta
         while current <= self.end_date:
             if current.weekday() in desired:
-                count += 1
+                dates.append(current)
             current += timedelta(days=1)
-        return count
+        return dates
+
+    def session_count(self):
+        """Count how many class sessions occur between start_date and end_date based on selected weekdays."""
+        return len(self.session_dates())
 
     def clean(self):
         # ensure end_date is not before start_date

@@ -71,81 +71,134 @@ class CourseAdmin(admin.ModelAdmin):
     def export_attendance_list(self, request, queryset):
         from openpyxl import Workbook
         from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
         from django.http import HttpResponse
+        import zipfile, io
 
-        for course in queryset:
+        red_fill   = PatternFill(start_color='C00000', end_color='C00000', fill_type='solid')
+        grey_fill  = PatternFill(start_color='D8D8D8', end_color='D8D8D8', fill_type='solid')
+        white_fill = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+        thin       = Side(style='thin')
+        border     = Border(left=thin, right=thin, top=thin, bottom=thin)
+        center     = Alignment(horizontal='center', vertical='center')
+        left_align = Alignment(horizontal='left', vertical='center')
+
+        def make_wb(course):
             wb = Workbook()
             ws = wb.active
-            ws.title = 'Teilnehmerliste'
+            ws.title = 'Anwesenheit'
 
-            # Header style
-            header_fill = PatternFill(start_color='c00000', end_color='c00000', fill_type='solid')
-            header_font = Font(color='FFFFFF', bold=True, size=12)
-            border = Border(
-                left=Side(style='thin'),
-                right=Side(style='thin'),
-                top=Side(style='thin'),
-                bottom=Side(style='thin')
+            dates     = course.session_dates()
+            locations = ', '.join(l.name for l in course.locations.all()) or '-'
+            days_str  = ', '.join(course.days) if course.days else '-'
+            last_col  = get_column_letter(3 + len(dates))
+
+            # ── Zeile 1: Kursname ──────────────────────────────────────────
+            ws.merge_cells(f'A1:{last_col}1')
+            c = ws['A1']
+            c.value     = f'Anwesenheitsliste – {course.name}'
+            c.font      = Font(color='FFFFFF', bold=True, size=14)
+            c.fill      = red_fill
+            c.alignment = center
+            ws.row_dimensions[1].height = 24
+
+            # ── Zeile 2: Kursinfo ──────────────────────────────────────────
+            ws.merge_cells(f'A2:{last_col}2')
+            c = ws['A2']
+            c.value = (
+                f'Zeitraum: {course.start_date.strftime("%d.%m.%Y")} – '
+                f'{course.end_date.strftime("%d.%m.%Y")}   |   '
+                f'Zeit: {course.start_time.strftime("%H:%M")} – '
+                f'{course.end_time.strftime("%H:%M")} Uhr   |   '
+                f'Tage: {days_str}   |   Ort: {locations}   |   '
+                f'Einheiten: {len(dates)}'
             )
+            c.font      = Font(size=10)
+            c.fill      = grey_fill
+            c.alignment = left_align
+            ws.row_dimensions[2].height = 16
 
-            # Title and course info
-            ws['A1'] = f"Teilnehmerliste: {course.name}"
-            ws['A1'].font = Font(bold=True, size=14)
-            ws['A1'].fill = header_fill
-            ws['A1'].font = Font(color='FFFFFF', bold=True, size=14)
-            ws.merge_cells('A1:E1')
+            # ── Zeile 3: Leerzeile ─────────────────────────────────────────
+            ws.row_dimensions[3].height = 8
 
-            row = 3
-            ws[f'A{row}'] = str(_("Datum"))
-            ws[f'B{row}'] = str(_("Beginn"))
-            ws[f'C{row}'] = str(_("Ende"))
-            ws[f'D{row}'] = str(_("Wochentage"))
-            ws[f'E{row}'] = str(_("Ort"))
+            # ── Zeile 4: Spaltenüberschriften ──────────────────────────────
+            for col, h in enumerate(['Nr.', 'Nachname', 'Vorname'], 1):
+                c = ws.cell(row=4, column=col, value=h)
+                c.font      = Font(color='FFFFFF', bold=True, size=11)
+                c.fill      = red_fill
+                c.border    = border
+                c.alignment = center
 
-            ws[f'A{row+1}'] = str(course.start_date) + ' - ' + str(course.end_date)
-            ws[f'B{row+1}'] = str(course.start_time)
-            ws[f'C{row+1}'] = str(course.end_time)
-            ws[f'D{row+1}'] = ', '.join(course.days) if course.days else '-'
-            ws[f'E{row+1}'] = ', '.join([l.name for l in course.locations.all()]) if course.locations.exists() else '-'
+            for i, d in enumerate(dates, 1):
+                c = ws.cell(row=4, column=3 + i,
+                            value=d.strftime('%d.%m.\n%a'))
+                c.font      = Font(color='FFFFFF', bold=True, size=10)
+                c.fill      = red_fill
+                c.border    = border
+                c.alignment = Alignment(horizontal='center', vertical='center',
+                                        wrap_text=True)
+            ws.row_dimensions[4].height = 30
 
-            # Participant table header
-            row = 6
-            headers = [str(_('Vorname')), str(_('Nachname')), str(_("E-Mail")), str(_('Status')), str(_("Anwesend"))]
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=row, column=col, value=header)
-                cell.fill = header_fill
-                cell.font = header_font
-                cell.border = border
-                cell.alignment = Alignment(horizontal='center')
+            # ── Datenzeilen ────────────────────────────────────────────────
+            registrations = (
+                course.registration_set
+                .filter(status='CONFIRMED')
+                .order_by('last_name', 'first_name')
+            )
+            for idx, reg in enumerate(registrations, 1):
+                data_row  = 4 + idx
+                row_fill  = white_fill if idx % 2 == 1 else grey_fill
 
-            # Participants
-            registrations = course.registration_set.filter(status='CONFIRMED').order_by('last_name', 'first_name')
-            for reg in registrations:
-                row += 1
-                ws.cell(row=row, column=1, value=reg.first_name).border = border
-                ws.cell(row=row, column=2, value=reg.last_name).border = border
-                ws.cell(row=row, column=3, value=reg.email).border = border
-                ws.cell(row=row, column=4, value=reg.get_status_display()).border = border
-                ws.cell(row=row, column=5, value='☐').border = border  # Checkbox
-                ws.cell(row=row, column=5).alignment = Alignment(horizontal='center')
+                for col, val in enumerate([idx, reg.last_name, reg.first_name], 1):
+                    c = ws.cell(row=data_row, column=col, value=val)
+                    c.border    = border
+                    c.fill      = row_fill
+                    c.alignment = center if col == 1 else left_align
 
-            # Set column widths
-            ws.column_dimensions['A'].width = 15
-            ws.column_dimensions['B'].width = 15
-            ws.column_dimensions['C'].width = 15
-            ws.column_dimensions['D'].width = 20
-            ws.column_dimensions['E'].width = 20
+                for i in range(1, len(dates) + 1):
+                    c = ws.cell(row=data_row, column=3 + i, value='')
+                    c.border    = border
+                    c.fill      = row_fill
+                    c.alignment = center
 
-            # Return Excel file
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename="Teilnehmerliste_{course.name}.xlsx"'
+                ws.row_dimensions[data_row].height = 18
+
+            # ── Spaltenbreiten ─────────────────────────────────────────────
+            ws.column_dimensions['A'].width = 5
+            ws.column_dimensions['B'].width = 22
+            ws.column_dimensions['C'].width = 16
+            for i in range(1, len(dates) + 1):
+                ws.column_dimensions[get_column_letter(3 + i)].width = 7
+
+            # Erste 3 Spalten einfrieren
+            ws.freeze_panes = 'D5'
+            return wb
+
+        courses = list(queryset)
+        if len(courses) == 1:
+            wb = make_wb(courses[0])
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            safe = courses[0].name.replace('/', '-')
+            response['Content-Disposition'] = f'attachment; filename="Anwesenheit_{safe}.xlsx"'
             wb.save(response)
             return response
 
-        # If multiple courses selected, export only the first
-        return self.export_attendance_list(request, queryset[:1])
+        # Mehrere Kurse → ZIP
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for course in courses:
+                xlsx = io.BytesIO()
+                make_wb(course).save(xlsx)
+                safe = course.name.replace('/', '-')
+                zf.writestr(f'Anwesenheit_{safe}.xlsx', xlsx.getvalue())
+        buf.seek(0)
+        response = HttpResponse(buf, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="Anwesenheitslisten.zip"'
+        return response
 
-    export_attendance_list.short_description = str(_("Teilnehmerliste als Excel exportieren"))
+    export_attendance_list.short_description = str(_("Anwesenheitsliste als Excel exportieren"))
 
 
 @admin.register(Registration)
