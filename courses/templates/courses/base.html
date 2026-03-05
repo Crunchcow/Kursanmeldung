@@ -3,6 +3,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kursanmeldung{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <style>
@@ -34,12 +35,21 @@
         @media (max-width: 1400px) {
             .table { font-size: 0.85rem; }
         }
+
+        /* Mobile Optimierungen */
+        @media (max-width: 767px) {
+            .navbar-brand { font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg">
-    <a class="navbar-brand text-white" href="/">{% trans "Verein" %}</a>
-    <div class="collapse navbar-collapse">
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <a class="navbar-brand" href="/">{% trans "Verein" %}</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
+            aria-controls="navbarContent" aria-expanded="false" aria-label="Navigation umschalten">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav ml-auto">
             {% if user.is_authenticated %}
                 <li class="nav-item nav-link disabled text-white">
@@ -74,5 +84,7 @@
         <a href="{% url 'impressum' %}">{% trans "Impressum" %}</a>
     </small>
 </footer>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
