@@ -1,5 +1,35 @@
 # Django Kursanmeldung – Projekt-Briefing für Copilot
 
+## 🖥 Server-Infrastruktur (Hetzner)
+- **IP:** `89.167.0.28`
+- **URL:** http://89.167.0.28/
+- **Zugang:** SSH als root
+- **Repo auf Server:** Wurde manuell hochgeladen + git pull für Updates
+- **Stack:** Nginx als Reverse Proxy, Gunicorn als WSGI-Server
+- **Docker:** docker-compose.yml vorhanden (seit 05.03.2026), ob Docker aktiv ist → `docker ps` auf dem Server prüfen
+- **App-Pfad (vermutlich):** `/opt/kursanmeldung` oder `/root/kursanmeldung` → `find / -name manage.py 2>/dev/null`
+- **Datenbank:** SQLite (`db.sqlite3` liegt direkt im Repo-Ordner)
+- **Secrets:** `.env` Datei auf dem Server (nicht im Repo), basierend auf `.env.example`
+
+### Update-Prozess (sobald Pfad bekannt)
+```bash
+ssh root@89.167.0.28
+cd /pfad/zum/repo
+git pull origin main
+# bei Docker:
+docker compose up -d --build
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py collectstatic --noinput
+# ohne Docker (manuell):
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+systemctl restart gunicorn   # oder: supervisorctl restart gunicorn
+```
+
+---
+
 ## 🎯 Projektübersicht
 Eine Django-Webanwendung zur Kursverwaltung und -anmeldung für einen Breitensport-Verein.
 
