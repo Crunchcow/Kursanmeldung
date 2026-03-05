@@ -7,29 +7,20 @@
 <h1>{% trans "Verfügbare Kurse" %}</h1>
 
 {# ── Kursplan-Übersicht ── #}
-<div class="mb-2">
-  <button class="btn btn-outline-secondary btn-sm mb-2" type="button"
-          data-toggle="collapse" data-target="#kursplanBild"
-          aria-expanded="false" aria-controls="kursplanBild">
-    📅 {% trans "Kursplan als Übersicht anzeigen" %}
+<div class="mb-4">
+  <button class="btn btn-secondary mb-3" type="button"
+          data-toggle="collapse" data-target="#kursplanBilder"
+          aria-expanded="false" aria-controls="kursplanBilder">
+    <span class="collapse-icon">▶</span> {% trans "Kursplan anzeigen" %}
   </button>
-  <div class="collapse" id="kursplanBild">
+  <div class="collapse" id="kursplanBilder">
     <img src="{% static 'courses/img/kursplan.jpg' %}"
          alt="{% trans 'Kursplan Breitensport' %}"
-         class="img-fluid rounded shadow-sm"
+         class="img-fluid rounded shadow-sm d-block mb-3"
          style="max-width: 960px; width: 100%;">
-  </div>
-</div>
-<div class="mb-4">
-  <button class="btn btn-outline-secondary btn-sm mb-2" type="button"
-          data-toggle="collapse" data-target="#kursplanBild2"
-          aria-expanded="false" aria-controls="kursplanBild2">
-    📅 {% trans "Kursplan als Übersicht anzeigen (2)" %}
-  </button>
-  <div class="collapse" id="kursplanBild2">
     <img src="{% static 'courses/img/kursplan2.jpg' %}"
          alt="{% trans 'Kursplan Breitensport 2' %}"
-         class="img-fluid rounded shadow-sm"
+         class="img-fluid rounded shadow-sm d-block"
          style="max-width: 960px; width: 100%;">
   </div>
 </div>
@@ -126,4 +117,14 @@
 {% else %}
     <p>{% trans "Keine Kurse verfügbar." %}</p>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  $('#kursplanBilder').on('show.bs.collapse', function () {
+    $(this).prev().find('.collapse-icon').text('▼');
+  }).on('hide.bs.collapse', function () {
+    $(this).prev().find('.collapse-icon').text('▶');
+  });
+</script>
 {% endblock %}
