@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.http import HttpResponseRedirect
 from .models import Location, Course, Registration
 
 
@@ -17,9 +20,9 @@ class RegistrationInline(admin.TabularInline):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'instructor_user', 'start_date', 'end_date',
-        'start_time', 'end_time', 'days', 'max_participants',
-        'utilization_display', 'is_closed',
+        'name', 'start_date', 'end_date',
+        'start_time', 'end_time', 'days',
+        'utilization_display', 'registrations_link', 'is_closed',
     )
     list_editable = ('is_closed',)
     list_filter = ('is_closed', 'days', 'locations', 'start_date', 'instructor_user')
@@ -43,6 +46,20 @@ class CourseAdmin(admin.ModelAdmin):
             color, confirmed, total, pct,
         )
     utilization_display.short_description = _('Auslastung')
+
+    def registrations_link(self, obj):
+        confirmed = obj.registration_set.filter(status='CONFIRMED').count()
+        waitlist  = obj.registration_set.filter(status='WAITLIST').count()
+        url = (
+            reverse('admin:courses_registration_changelist')
+            + '?' + urlencode({'course__id__exact': obj.pk})
+        )
+        label = f'{confirmed} Teilnehmer'
+        if waitlist:
+            label += f' + {waitlist} Warteliste'
+        return format_html('<a href="{}">{} &rarr;</a>', url, label)
+    registrations_link.short_description = _('Anmeldungen')
+    registrations_link.admin_order_field = None
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -203,10 +220,21 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Registration)
 class RegistrationAdmin(admin.ModelAdmin):
-    list_display = ('course', 'first_name', 'last_name', 'email', 'status', 'terms_accepted')
+    list_display = ('course', 'last_name', 'first_name', 'email', 'status')
     list_filter = ('status', 'course')
     search_fields = ('first_name', 'last_name', 'email')
     actions = ['export_as_csv', 'export_debits', 'export_wiso_meinverein']
+
+    def changelist_view(self, request, extra_context=None):
+        # Kursleitung ohne Kurs-Filter → direkt zur Kursliste schicken
+        if (
+            request.user.groups.filter(name='Kursleitung').exists()
+            and 'course__id__exact' not in request.GET
+        ):
+            return HttpResponseRedirect(
+                reverse('admin:courses_course_changelist')
+            )
+        return super().changelist_view(request, extra_context)
 
     def get_actions(self, request):
         actions = super().get_actions(request)
