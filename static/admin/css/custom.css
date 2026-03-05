@@ -49,13 +49,31 @@
   --module-fg:          #fff;
 
   /* Border */
-  --border-color:       #ddd;
-  --hairline-color:     #e8e8e8;
+  --border-color:       #bbb;
+  --hairline-color:     #ccc;
+
+  /* Tabellen-Zeilen alternierend */
+  --even-row-color:     #e8e8e8;
+  --odd-row-color:      #f5f5f5;
 }
 
 body {
   background-color: var(--body-bg) !important;
   color: var(--body-fg) !important;
+}
+
+/* Alternierende Tabellenzeilen */
+#result_list tr.row1 td,
+#result_list tr.row1 th {
+  background-color: #f5f5f5;
+}
+#result_list tr.row2 td,
+#result_list tr.row2 th {
+  background-color: #e0e0e0;
+}
+#result_list tr:hover td,
+#result_list tr:hover th {
+  background-color: #fce8e8 !important;
 }
 
 .deletelink, .deletelink:visited {
