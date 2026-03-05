@@ -1,0 +1,22 @@
+Hallo {{ registration.first_name }} {{ registration.last_name }},
+
+Ihre Anmeldung für den folgenden Kurs wurde erfolgreich entgegengenommen:
+
+Kurs:       {{ registration.course.name }}
+Zeitraum:   {{ registration.course.start_date }} – {{ registration.course.end_date }}
+Uhrzeit:    {{ registration.course.start_time }} – {{ registration.course.end_time }}
+Wochentage: {{ days }}
+Ort:        {{ locations }}
+Betrag:     {{ registration.total_price }}€{% if registration.status == 'WAITLIST' %} (Warteliste – kein Einzug bis Platzbestätigung){% else %} (wird per SEPA-Lastschrift eingezogen){% endif %}
+
+{% if registration.status == 'WAITLIST' %}
+Sie befinden sich auf der Warteliste. Wir benachrichtigen Sie, sobald ein Platz frei wird.
+{% endif %}
+
+----------------------------------------------------------------------
+Möchten Sie Ihre Anmeldung stornieren? Klicken Sie auf diesen Link:
+{{ cancel_url }}
+----------------------------------------------------------------------
+
+Mit freundlichen Grüßen
+SV Westfalia Osterwick 1923 e.V.

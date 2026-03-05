@@ -5,12 +5,41 @@ from .forms import RegistrationForm
 from allauth.account.adapter import DefaultAccountAdapter
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings as django_settings
+from django.urls import reverse
 
 
 class NoSignupAdapter(DefaultAccountAdapter):
     """Custom adapter that blocks signup."""
     def is_open_for_signup(self, request):
         return False
+
+
+def _send_confirmation_email(request, registration):
+    """Bestätigungs-E-Mail mit Storno-Link an den Anmelder senden."""
+    cancel_url = request.build_absolute_uri(
+        reverse('course_cancel', args=[registration.cancel_token])
+    )
+    days = ', '.join(registration.course.days)
+    locations = ', '.join(loc.name for loc in registration.course.locations.all())
+
+    subject = render_to_string(
+        'courses/email/confirmation_subject.txt',
+        {'registration': registration}
+    ).strip()
+    body = render_to_string(
+        'courses/email/confirmation_body.txt',
+        {'registration': registration, 'cancel_url': cancel_url, 'days': days, 'locations': locations}
+    )
+    send_mail(
+        subject=subject,
+        message=body,
+        from_email=django_settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[registration.email],
+        fail_silently=True,
+    )
 
 
 # frontend views
@@ -40,25 +69,35 @@ def register(request, course_id):
                 return render(request, 'courses/register.html', {'course': course, 'form': form})
             reg = form.save(commit=False)
             reg.course = course
-            reg.terms_accepted = True  # accept_terms wurde im Formular validiert
+            reg.terms_accepted = True
             if course.is_full():
                 reg.status = 'WAITLIST'
             reg.save()
-            if reg.status == 'WAITLIST':
-                messages.warning(request, _("Der Kurs ist leider ausgebucht. Sie wurden auf die Warteliste gesetzt."))
-            else:
-                messages.success(request, _("Ihre Anmeldung war erfolgreich!"))
-            return redirect('course_list')
+            _send_confirmation_email(request, reg)
+            return redirect('course_confirmation', token=reg.cancel_token)
     else:
         form = RegistrationForm(course=course)
     return render(request, 'courses/register.html', {'course': course, 'form': form})
 
 
+def course_confirmation(request, token):
+    """Bestätigungsseite nach erfolgreicher Anmeldung."""
+    registration = get_object_or_404(Registration, cancel_token=token)
+    return render(request, 'courses/confirmation.html', {'registration': registration})
+
+
+def course_cancel(request, token):
+    """Storno-Seite: zeigt Bestätigung, löscht bei POST die Anmeldung."""
+    registration = get_object_or_404(Registration, cancel_token=token)
+    if request.method == 'POST':
+        registration.delete()
+        return render(request, 'courses/cancel_done.html')
+    return render(request, 'courses/cancel_confirm.html', {'registration': registration})
+
+
 def privacy(request):
-    # simple privacy page; replace text with legal content
     return render(request, 'courses/privacy.html')
 
 
 def impressum(request):
-    """Einfache Impressumsseite."""
     return render(request, 'courses/impressum.html')

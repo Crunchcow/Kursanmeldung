@@ -1,0 +1,24 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Anmeldung stornieren" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">{% trans "Anmeldung stornieren" %}</h4>
+            </div>
+            <div class="card-body">
+                <p>{% blocktrans with name=registration.first_name last=registration.last_name course=registration.course.name %}Möchten Sie die Anmeldung von <strong>{{ name }} {{ last }}</strong> für den Kurs <strong>{{ course }}</strong> wirklich stornieren?{% endblocktrans %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'course_list' %}" class="btn btn-secondary">{% trans "Abbrechen" %}</a>
+                    <button type="submit" class="btn btn-danger">{% trans "Ja, Anmeldung stornieren" %}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

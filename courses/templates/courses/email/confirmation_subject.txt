@@ -1,0 +1,1 @@
+Anmeldebestätigung: {{ registration.course.name }}

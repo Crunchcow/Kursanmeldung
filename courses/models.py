@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -127,6 +128,7 @@ class Registration(models.Model):
     half_course = models.BooleanField(default=False, verbose_name=_('Halber Kurs'))
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='CONFIRMED', verbose_name=_('Status'))
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
+    cancel_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name=_('Storno-Token'))
 
     class Meta:
         verbose_name = _('Anmeldung')
