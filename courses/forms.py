@@ -11,9 +11,9 @@ class RegistrationForm(forms.ModelForm):
         required=True,
         label=_(
             "Ich erteile hiermit ein SEPA-Lastschriftmandat. Der Verein ist berechtigt, "
-            "den fälligen Kursbetrag von meinem oben angegebenen Konto einzuziehen. "
+            "den faelligen Kursbetrag von meinem oben angegebenen Konto einzuziehen. "
             "Wenn das Konto die erforderliche Deckung nicht aufweist, besteht seitens "
-            "des kontoführenden Kreditinstituts keine Verpflichtung zur Einlösung. "
+            "des kontofuehrenden Kreditinstituts keine Verpflichtung zur Einloesung. "
             "Ich kann innerhalb von 8 Wochen ab Buchungsdatum die Erstattung des "
             "belasteten Betrages verlangen."
         ),
@@ -33,27 +33,28 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = Registration
-        fields = ['first_name', 'last_name', 'email', 'iban', 'bic', 'account_holder', 'is_member', 'half_course']
+        fields = ['first_name', 'last_name', 'email', 'phone', 'iban', 'bic', 'account_holder', 'is_member', 'half_course']
         labels = {
-            'first_name': _('Vorname'),
-            'last_name': _('Nachname'),
-            'email': _('E-Mail'),
-            'iban': _('IBAN'),
-            'bic': _('BIC'),
-            'account_holder': _('Kontoinhaber'),
-            'is_member': _('Mitglied'),
-            'half_course': _('Halber Kurs (50 %)'),
+            'first_name':      _('Vorname'),
+            'last_name':       _('Nachname'),
+            'email':           _('E-Mail'),
+            'phone':           _('Handy / Telefon'),
+            'iban':            _('IBAN'),
+            'bic':             _('BIC'),
+            'account_holder':  _('Kontoinhaber'),
+            'is_member':       _('Ich bin Vereinsmitglied'),
+            'half_course':     _('Halber Kurs (50 %)'),
         }
 
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get('accept_terms'):
             raise forms.ValidationError(_("Du musst die Bedingungen akzeptieren."))
-        # IBAN: Leerzeichen entfernen, Länge 15–34
+        # IBAN: Leerzeichen entfernen, Laenge 15-34
         iban = cleaned.get('iban')
         if iban:
             iban_clean = iban.replace(' ', '').upper()
             cleaned['iban'] = iban_clean
             if not (15 <= len(iban_clean) <= 34):
-                self.add_error('iban', _('Bitte geben Sie eine gültige IBAN ein.'))
+                self.add_error('iban', _('Bitte geben Sie eine gueltige IBAN ein.'))
         return cleaned

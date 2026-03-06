@@ -26,18 +26,26 @@
                 </div>
                 {% endif %}
                 <div class="mb-3">
-                    <div><strong>{% trans "Datum" %}:</strong> {{ course.start_date }} – {{ course.end_date }}</div>
-                    <div><strong>{% trans "Uhrzeit" %}:</strong> {{ course.start_time }}–{{ course.end_time }}</div>
-                    <div><strong>{% trans "Wochentage" %}:</strong> {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
-                    <div><strong>{% trans "Einheiten" %}:</strong> {{ course.session_count }}</div>
-                    <div><strong>{% trans "Preis Mitglied" %}:</strong> {{ course.price_member }}€</div>
-                    <div><strong>{% trans "Preis Nicht-Mitglied" %}:</strong> {{ course.price_non_member }}€</div>
+                    <div><strong>Datum:</strong> {{ course.start_date }} – {{ course.end_date }}</div>
+                    <div><strong>Uhrzeit:</strong> {{ course.start_time }}–{{ course.end_time }}</div>
+                    <div><strong>Wochentage:</strong> {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    <div><strong>Anzahl Einheiten:</strong> {{ course.session_count }}
+                      {% with dates=course.session_dates %}
+                        {% if dates %}
+                          <span class="text-muted small">
+                            ({% for d in dates %}{{ d|date:"d.m." }}{% if not forloop.last %}, {% endif %}{% endfor %})
+                          </span>
+                        {% endif %}
+                      {% endwith %}
+                    </div>
+                    <div><strong>Preis Mitglied:</strong> {{ course.price_member }}€</div>
+                    <div><strong>Preis Nicht-Mitglied:</strong> {{ course.price_non_member }}€</div>
                 </div>
                 <form method="post" id="regform">
                     {% csrf_token %}
                     {{ form|crispy }}
                     <div id="price-summary" class="mt-2 alert alert-secondary" style="display:none;">
-                        <p><strong>{% trans "Gewählter Preis" %}:</strong> <span id="selected-price">0</span>€</p>
+                        <p><strong>Zu zahlender Betrag:</strong> <span id="selected-price">0</span>€</p>
                     </div>
                     <button type="submit" class="btn btn-primary">{% trans "Absenden" %}</button>
                 </form>

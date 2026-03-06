@@ -45,8 +45,11 @@
 
                 {% if registration.status == 'WAITLIST' %}
                 <div class="alert alert-warning">
-                    <strong>{% trans "Sie befinden sich auf der Warteliste." %}</strong>
-                    {% trans "Wir benachrichtigen Sie per E-Mail, sobald ein Platz frei wird." %}
+                    <strong>Sie befinden sich auf der Warteliste.</strong>
+                    {% with pos=registration.waitlist_position %}
+                      {% if pos %} <strong>(Platz {{ pos }})</strong>{% endif %}
+                    {% endwith %}
+                    Wir benachrichtigen Sie per E-Mail, sobald ein Platz frei wird.
                 </div>
                 {% endif %}
 

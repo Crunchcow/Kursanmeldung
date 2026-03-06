@@ -4,7 +4,10 @@
 {% block title %}{% trans "Kurse" %}{% endblock %}
 
 {% block content %}
-<h1>{% trans "Verfügbare Kurse" %}</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">Verfügbare Kurse</h1>
+  <a href="{% url 'course_archive' %}" class="btn btn-sm btn-outline-secondary">Kursarchiv &rarr;</a>
+</div>
 
 {# ── Kursplan-Übersicht ── #}
 <div class="mb-4">
@@ -25,6 +28,35 @@
   </div>
 </div>
 
+{# ── Filter ── #}
+<form method="get" class="mb-4">
+  <div class="form-row align-items-end">
+    <div class="col-auto">
+      <label class="mr-1"><strong>Wochentag:</strong></label>
+      <select name="day" class="form-control form-control-sm d-inline-block" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Alle</option>
+        {% for code, label in week_days %}
+          <option value="{{ code }}" {% if day_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto ml-3">
+      <label class="mr-1"><strong>Kurstyp:</strong></label>
+      <select name="type" class="form-control form-control-sm d-inline-block" style="width:auto;" onchange="this.form.submit()">
+        <option value="">Alle</option>
+        {% for code, label in course_types %}
+          <option value="{{ code }}" {% if type_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% if day_filter or type_filter %}
+    <div class="col-auto ml-2">
+      <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-secondary">Filter zuruecksetzen</a>
+    </div>
+    {% endif %}
+  </div>
+</form>
+
 {% if courses %}
 
 {# ── Desktop-Tabelle (ab md) ── #}
@@ -37,6 +69,7 @@
                 <th scope="col">{% trans "Uhrzeit" %}</th>
                 <th scope="col">{% trans "Wochentage" %}</th>
                 <th scope="col">{% trans "Ort" %}</th>
+                <th scope="col">{% trans "Einheiten" %}</th>
                 <th scope="col">{% trans "Preis Mitglied" %}</th>
                 <th scope="col">{% trans "Preis Nicht-Mitglied" %}</th>
                 <th scope="col">&nbsp;</th>
@@ -53,6 +86,7 @@
                 <td>{{ course.start_time }}&nbsp;–&nbsp;{{ course.end_time }}</td>
                 <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                <td>{{ course.session_count }}</td>
                 <td>{{ course.price_member }}€</td>
                 <td>{{ course.price_non_member }}€</td>
                 <td>
@@ -61,12 +95,11 @@
                     {% elif course.is_full %}
                         <span class="badge badge-warning">{% trans "Warteliste" %}</span><br>
                         <small class="text-muted">{% trans "Kurs ausgebucht" %}</small><br>
-                        <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-outline-secondary mt-1">{% trans "Auf Warteliste" %}</a>
+                        <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-warning mt-1" style="color:#000;">{% trans "Auf Warteliste" %}</a>
                     {% else %}
                         <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span><br>
                         <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
-                    {% endif %}
-                </td>
+                    {% endif %}                    <a href="{% url 'course_ical' course.id %}" class="btn btn-sm btn-outline-info mt-1" title="Kalender-Export">&#x1F4C5; iCal</a>                </td>
             </tr>
         {% endfor %}
         </tbody>
@@ -104,12 +137,11 @@
             {% elif course.is_full %}
                 <span class="badge badge-warning">{% trans "Warteliste" %}</span>
                 <small class="text-muted d-block mb-1">{% trans "Kurs ausgebucht" %}</small>
-                <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Auf Warteliste" %}</a>
+                <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-warning" style="color:#000;">{% trans "Auf Warteliste" %}</a>
             {% else %}
                 <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span>
                 <a href="{% url 'course_register' course.id %}" class="btn btn-primary btn-block mt-2">{% trans "Anmelden" %}</a>
-            {% endif %}
-        </div>
+            {% endif %}            <a href="{% url 'course_ical' course.id %}" class="btn btn-sm btn-outline-info btn-block mt-1" title="Zum Kalender hinzuf\u00fcgen">&#x1F4C5; iCal</a>        </div>
     </div>
     {% endfor %}
 </div>

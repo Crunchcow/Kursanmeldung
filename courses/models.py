@@ -1,9 +1,7 @@
 import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
-
-
 from django.utils.translation import gettext_lazy as _
+from multiselectfield import MultiSelectField
 
 
 class Location(models.Model):
@@ -18,11 +16,7 @@ class Location(models.Model):
         return self.name
 
 
-from multiselectfield import MultiSelectField
-
 def week_days():
-    # Werte (z. B. ‚Mo‘) werden im Datenfeld gespeichert; Label bleibt der volle
-    # Name. Wir verwenden deutsche Abkürzungen statt englischer.
     return [
         ('Mo', 'Montag'),
         ('Di', 'Dienstag'),
@@ -35,6 +29,26 @@ def week_days():
 
 
 class Course(models.Model):
+    # ── Einheitenmodus ─────────────────────────────────────────────────────────
+    SESSION_MODE_AUTO   = 'AUTO'
+    SESSION_MODE_COUNT  = 'COUNT'
+    SESSION_MODE_MANUAL = 'MANUAL'
+    SESSION_MODE_CHOICES = [
+        (SESSION_MODE_AUTO,   _('Automatisch (Start + Ende + Wochentage, NRW-Feiertage uebersprungen)')),
+        (SESSION_MODE_COUNT,  _('Einheitenanzahl (Start + Wochentage + Anzahl, Enddatum wird berechnet)')),
+        (SESSION_MODE_MANUAL, _('Manuell (Einzeltermine selbst bestimmen)')),
+    ]
+
+    # ── Kurstyp ───────────────────────────────────────────────────────────────
+    TYPE_WATER = 'WATER'
+    TYPE_HALL  = 'HALL'
+    TYPE_OTHER = 'OTHER'
+    COURSE_TYPE_CHOICES = [
+        (TYPE_WATER, _('Wasserkurs')),
+        (TYPE_HALL,  _('Hallenkurs')),
+        (TYPE_OTHER, _('Sonstiges')),
+    ]
+
     name = models.CharField(max_length=200, verbose_name=_('Kursname'))
     description = models.TextField(blank=True, verbose_name=_('Beschreibung'))
     locations = models.ManyToManyField(Location, blank=True, verbose_name=_('Orte'))
@@ -42,7 +56,7 @@ class Course(models.Model):
     end_date = models.DateField(verbose_name=_('Ende'), null=True, blank=True)
     start_time = models.TimeField(verbose_name=_('Startzeit'))
     end_time = models.TimeField(verbose_name=_('Endzeit'))
-    days = MultiSelectField(choices=week_days(), verbose_name=_('Wochentage'))
+    days = MultiSelectField(choices=week_days(), verbose_name=_('Wochentage'), blank=True)
     max_participants = models.PositiveIntegerField(verbose_name=_('Maximale Teilnehmer'))
     price_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Mitglied'))
     price_non_member = models.DecimalField(max_digits=6, decimal_places=2, verbose_name=_('Preis Nicht-Mitglied'))
@@ -50,15 +64,10 @@ class Course(models.Model):
     is_closed = models.BooleanField(
         default=False,
         verbose_name=_('Anmeldung gesperrt'),
-        help_text=_('Wenn aktiv, können sich keine neuen Teilnehmer anmelden.'),
+        help_text=_('Wenn aktiv, koennen sich keine neuen Teilnehmer anmelden.'),
     )
-    # Text field for backwards compatibility / display. New code should
-    # use ``instructor_user`` to relate a course to an actual user account.
     instructor = models.CharField(max_length=200, blank=True, verbose_name=_('Kursleitung'))
 
-    # optional FK to a Django user who is responsible for the course.  Using a
-    # real user makes it easy to restrict admin access later on and avoids the
-    # fragile name/email comparison that would otherwise be necessary.
     from django.conf import settings
     instructor_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -66,11 +75,37 @@ class Course(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         verbose_name=_('Kursleitung (Benutzer)'),
-        help_text=_('Wähle den Benutzer, der für diesen Kurs verantwortlich ist.'),
+        help_text=_('Waehle den Benutzer, der fuer diesen Kurs verantwortlich ist.'),
+    )
+
+    # ── Neue Felder Phase 1 ───────────────────────────────────────────────────
+    session_mode = models.CharField(
+        max_length=10,
+        choices=SESSION_MODE_CHOICES,
+        default=SESSION_MODE_AUTO,
+        verbose_name=_('Einheitenmodus'),
+    )
+    num_sessions = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_('Anzahl Einheiten'),
+        help_text=_('Nur fuer Modus "Einheitenanzahl". Enddatum wird automatisch berechnet.'),
+    )
+    course_type = models.CharField(
+        max_length=10,
+        choices=COURSE_TYPE_CHOICES,
+        default=TYPE_OTHER,
+        verbose_name=_('Kurstyp'),
+    )
+    publish_from = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_('Sichtbar ab'),
+        help_text=_('Leer = sofort sichtbar. Sonst wird der Kurs erst ab diesem Datum angezeigt.'),
     )
 
     def __str__(self):
-        return f"{self.name} ({self.start_date}–{self.end_date})"
+        return f"{self.name} ({self.start_date}\u2013{self.end_date})"
 
     def current_registrations(self):
         return self.registration_set.filter(status='CONFIRMED').count()
@@ -79,11 +114,27 @@ class Course(models.Model):
         return self.current_registrations() >= self.max_participants
 
     def free_spots(self):
-        """Gibt die Anzahl freier Plätze zurück (niemals negativ)."""
+        """Gibt die Anzahl freier Plaetze zurueck (niemals negativ)."""
         return max(0, self.max_participants - self.current_registrations())
 
     def session_dates(self):
-        """Gibt eine Liste aller Kurstermin-Daten zurück (datetime.date)."""
+        """Gibt die Liste aller aktiven Kurs-Termine zurueck (datetime.date).
+
+        Prioritaet:
+        1. CourseSession-Objekte vorhanden -> diese verwenden
+           (gilt fuer alle Modi nach generate_sessions() oder manuellem Eintrag)
+        2. Fallback fuer AUTO ohne generierte Sessions -> on-the-fly berechnen
+        """
+        db_sessions = self.sessions.filter(is_cancelled=False).order_by('date')
+        if db_sessions.exists():
+            return [s.date for s in db_sessions]
+        # Fallback: bisheriges Verhalten fuer bestehende Kurse ohne Sessions
+        if self.session_mode == self.SESSION_MODE_AUTO:
+            return self._calc_auto_dates()
+        return []
+
+    def _calc_auto_dates(self):
+        """Berechnet Termine aus start_date/end_date/days (ohne Feiertage, nur Fallback)."""
         from datetime import timedelta
         if not (self.start_date and self.end_date):
             return []
@@ -100,29 +151,116 @@ class Course(models.Model):
         return dates
 
     def session_count(self):
-        """Count how many class sessions occur between start_date and end_date based on selected weekdays."""
+        """Anzahl der Kurs-Einheiten."""
         return len(self.session_dates())
 
+    def generate_sessions(self, skip_holidays=True):
+        """Generiert CourseSession-Objekte basierend auf dem Modus.
+
+        - AUTO:   iteriert von start_date bis end_date, ueberspringt NRW-Feiertage
+        - COUNT:  generiert num_sessions Einheiten vorwaerts ab start_date, setzt end_date
+        - MANUAL: nichts tun - Sessions muessen manuell ueber Admin eingetragen werden
+        """
+        from datetime import timedelta, date as date_type
+
+        if self.session_mode == self.SESSION_MODE_MANUAL:
+            return  # Manuelle Sessions werden nicht ueberschrieben
+
+        nrw_holidays: set = set()
+        if skip_holidays:
+            try:
+                import holidays as hol_lib
+                start_year = self.start_date.year if self.start_date else date_type.today().year
+                end_year = start_year + 2
+                nrw_holidays = set(hol_lib.Germany(state='NW', years=range(start_year, end_year)))
+            except Exception:
+                pass
+
+        day_map = {'Mo': 0, 'Di': 1, 'Mi': 2, 'Do': 3, 'Fr': 4, 'Sa': 5, 'So': 6}
+        desired = {day_map[d] for d in self.days if d in day_map} if self.days else set()
+
+        sessions_to_create = []
+
+        if self.session_mode == self.SESSION_MODE_AUTO:
+            if not (self.start_date and self.end_date):
+                return
+            current = self.start_date
+            while current <= self.end_date:
+                if current.weekday() in desired and current not in nrw_holidays:
+                    sessions_to_create.append(CourseSession(course=self, date=current))
+                current += timedelta(days=1)
+
+        elif self.session_mode == self.SESSION_MODE_COUNT:
+            if not self.start_date or not self.num_sessions or not desired:
+                return
+            count = 0
+            current = self.start_date
+            safety = self.start_date.replace(year=self.start_date.year + 6)
+            while count < self.num_sessions and current < safety:
+                if current.weekday() in desired and current not in nrw_holidays:
+                    sessions_to_create.append(CourseSession(course=self, date=current))
+                    count += 1
+                current += timedelta(days=1)
+            if sessions_to_create:
+                Course.objects.filter(pk=self.pk).update(end_date=sessions_to_create[-1].date)
+                self.end_date = sessions_to_create[-1].date
+
+        self.sessions.all().delete()
+        CourseSession.objects.bulk_create(sessions_to_create)
+
     def clean(self):
-        # ensure end_date is not before start_date
         from django.core.exceptions import ValidationError
         if self.end_date and self.start_date and self.end_date < self.start_date:
             raise ValidationError({'end_date': _('Enddatum darf nicht vor dem Startdatum liegen.')})
+        if self.session_mode == self.SESSION_MODE_COUNT and not self.num_sessions:
+            raise ValidationError({'num_sessions': _('Bitte Anzahl Einheiten angeben.')})
 
     class Meta:
         verbose_name = _('Kurs')
         verbose_name_plural = _('Kurse')
 
 
+class CourseSession(models.Model):
+    """Eine einzelne Kurseinheit an einem bestimmten Datum."""
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name='sessions',
+        verbose_name=_('Kurs'),
+    )
+    date = models.DateField(verbose_name=_('Datum'))
+    is_cancelled = models.BooleanField(
+        default=False,
+        verbose_name=_('Ausgefallen'),
+        help_text=_('Einheit faellt aus (z.B. nachtraeglicher Feiertag, Ausnahme).'),
+    )
+    note = models.CharField(max_length=200, blank=True, verbose_name=_('Hinweis'))
+
+    class Meta:
+        ordering = ['date']
+        verbose_name = _('Einheit')
+        verbose_name_plural = _('Einheiten')
+
+    def __str__(self):
+        status = ' [ausgefallen]' if self.is_cancelled else ''
+        return f"{self.course.name} \u2013 {self.date.strftime('%d.%m.%Y')}{status}"
+
+
 class Registration(models.Model):
     STATUS_CHOICES = [
-        ('CONFIRMED', _('Bestätigt')),
-        ('WAITLIST', _('Warteliste')),
+        ('CONFIRMED', _('Bestaetigt')),
+        ('WAITLIST',  _('Warteliste')),
+        ('CANCELLED', _('Storniert')),
     ]
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name=_('Kurs'))
     first_name = models.CharField(max_length=100, verbose_name=_('Vorname'))
     last_name = models.CharField(max_length=100, verbose_name=_('Nachname'))
     email = models.EmailField(verbose_name=_('E-Mail'))
+    phone = models.CharField(
+        max_length=30,
+        verbose_name=_('Handy / Telefon'),
+        help_text=_('Fuer Rueckfragen bei Kursaenderungen.'),
+    )
     iban = models.CharField(max_length=34, verbose_name=_('IBAN'))
     bic = models.CharField(max_length=11, blank=True, verbose_name=_('BIC'))
     account_holder = models.CharField(max_length=200, verbose_name=_('Kontoinhaber'))
@@ -130,6 +268,14 @@ class Registration(models.Model):
     is_member = models.BooleanField(default=False, verbose_name=_('Mitglied'))
     half_course = models.BooleanField(default=False, verbose_name=_('Halber Kurs'))
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='CONFIRMED', verbose_name=_('Status'))
+    custom_price = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name=_('Individualbetrag'),
+        help_text=_('Wenn gesetzt, wird dieser Betrag statt des Standardpreises verwendet (z.B. bei Verletzung).'),
+    )
     created = models.DateTimeField(auto_now_add=True, verbose_name=_('Erstellt am'))
     cancel_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name=_('Storno-Token'))
 
@@ -138,30 +284,37 @@ class Registration(models.Model):
         verbose_name_plural = _('Anmeldungen')
 
     def price(self):
+        """Effektiver Preis. Individualbetrag hat hoechste Prioritaet."""
+        if self.custom_price is not None:
+            return self.custom_price
         base = self.course.price_member if self.is_member else self.course.price_non_member
         if self.half_course and self.course.allow_half:
             return base / 2
         return base
 
     def total_price(self):
-        # Preis ist als Festbetrag definiert; keine Multiplikation mit Einheiten
         return self.price()
+
+    def waitlist_position(self):
+        """Position auf der Warteliste (1-basiert), oder None wenn nicht WAITLIST."""
+        if self.status != 'WAITLIST':
+            return None
+        return (
+            Registration.objects
+            .filter(course=self.course, status='WAITLIST', created__lte=self.created)
+            .count()
+        )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.course.name}"
 
 
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 
-@receiver(post_delete, sender=Registration)
-def promote_from_waitlist(sender, instance, **kwargs):
-    """Wenn eine bestätigte Anmeldung gelöscht wird und der Kurs nicht mehr voll
-    ist, rückt automatisch die älteste Wartelisten-Anmeldung nach."""
-    if instance.status != 'CONFIRMED':
-        return
-    course = instance.course
+def _promote_next_from_waitlist(course):
+    """Rueckt den aeltesten Wartelistenplatz nach wenn Kapazitaet frei ist."""
     if course.is_full():
         return
     next_waiting = (
@@ -174,6 +327,24 @@ def promote_from_waitlist(sender, instance, **kwargs):
         next_waiting.status = 'CONFIRMED'
         next_waiting.save(update_fields=['status'])
         _send_waitlist_promotion_email(next_waiting)
+
+
+@receiver(post_delete, sender=Registration)
+def promote_from_waitlist_on_delete(sender, instance, **kwargs):
+    """Beim Loeschen einer bestaetigten Anmeldung nachrücken lassen."""
+    if instance.status != 'CONFIRMED':
+        return
+    _promote_next_from_waitlist(instance.course)
+
+
+@receiver(post_save, sender=Registration)
+def promote_from_waitlist_on_cancel(sender, instance, created, **kwargs):
+    """Wenn eine bestaetigte Anmeldung storniert wird, rueckt der naechste nach."""
+    if created:
+        return
+    if instance.status != 'CANCELLED':
+        return
+    _promote_next_from_waitlist(instance.course)
 
 
 def _send_waitlist_promotion_email(registration):
