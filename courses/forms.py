@@ -50,11 +50,37 @@ class RegistrationForm(forms.ModelForm):
         cleaned = super().clean()
         if not cleaned.get('accept_terms'):
             raise forms.ValidationError(_("Du musst die Bedingungen akzeptieren."))
-        # IBAN: Leerzeichen entfernen, Laenge 15-34
+        # IBAN-Validierung
         iban = cleaned.get('iban')
         if iban:
             iban_clean = iban.replace(' ', '').upper()
             cleaned['iban'] = iban_clean
-            if not (15 <= len(iban_clean) <= 34):
-                self.add_error('iban', _('Bitte geben Sie eine gueltige IBAN ein.'))
+            error = self._validate_iban(iban_clean)
+            if error:
+                self.add_error('iban', error)
         return cleaned
+
+    @staticmethod
+    def _validate_iban(iban):
+        """Gibt eine Fehlermeldung zurueck oder None wenn die IBAN gueltig ist."""
+        import re
+        # Grundformat: 2 Buchstaben (Laendercode) + 2 Ziffern (Pruefziffer) + bis 30 alphanumerisch
+        if not re.fullmatch(r'[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}', iban):
+            return _('Ungültige IBAN – Format: Ländercode (z. B. DE) + 2 Prüfziffern + Kontonummer.')
+        country = iban[:2]
+        # Bekannte Längenregeln
+        country_lengths = {
+            'DE': 22, 'AT': 20, 'CH': 21, 'NL': 18, 'BE': 16,
+            'FR': 27, 'ES': 24, 'IT': 27, 'PL': 28, 'GB': 22,
+        }
+        expected_len = country_lengths.get(country)
+        if expected_len and len(iban) != expected_len:
+            return _(
+                'IBAN für %(country)s muss genau %(n)d Zeichen lang sein (eingegeben: %(given)d).'
+            ) % {'country': country, 'n': expected_len, 'given': len(iban)}
+        # Mod-97-Prüfsumme (ISO 13616)
+        rearranged = iban[4:] + iban[:4]
+        numeric = ''.join(str(int(c, 36)) for c in rearranged)
+        if int(numeric) % 97 != 1:
+            return _('Die IBAN-Prüfziffer ist ungültig. Bitte Eingabe prüfen.')
+        return None
