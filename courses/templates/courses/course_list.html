@@ -97,7 +97,8 @@
                     {% else %}
                         <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span><br>
                         <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
-                    {% endif %}                    <a href="{% url 'course_ical' course.id %}" class="btn btn-sm btn-outline-info mt-1" title="Kalender-Export">&#x1F4C5; iCal</a>                </td>
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
         </tbody>
@@ -139,7 +140,8 @@
             {% else %}
                 <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span>
                 <a href="{% url 'course_register' course.id %}" class="btn btn-primary btn-block mt-2">{% trans "Anmelden" %}</a>
-            {% endif %}            <a href="{% url 'course_ical' course.id %}" class="btn btn-sm btn-outline-info btn-block mt-1" title="Zum Kalender hinzuf\u00fcgen">&#x1F4C5; iCal</a>        </div>
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
 </div>

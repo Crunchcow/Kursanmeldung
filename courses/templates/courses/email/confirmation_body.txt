@@ -13,7 +13,10 @@ Betrag:     {{ registration.total_price }}€{% if registration.status == 'WAITL
 Sie befinden sich auf der Warteliste. Wir benachrichtigen Sie, sobald ein Platz frei wird.
 {% endif %}
 
-----------------------------------------------------------------------
+{% if ical_url %}Kalender-Eintrag herunterladen (.ics):
+{{ ical_url }}
+
+{% endif %}----------------------------------------------------------------------
 Möchten Sie Ihre Anmeldung stornieren? Klicken Sie auf diesen Link:
 {{ cancel_url }}
 ----------------------------------------------------------------------

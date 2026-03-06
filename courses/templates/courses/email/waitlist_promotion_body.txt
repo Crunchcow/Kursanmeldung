@@ -10,6 +10,9 @@ Wochentage: {{ days }}
 Ort:        {{ locations }}
 Betrag:     {{ registration.total_price }}€ (wird per SEPA-Lastschrift eingezogen)
 
+Kalender-Eintrag herunterladen (.ics):
+{{ ical_url }}
+
 ----------------------------------------------------------------------
 Falls Sie den Platz doch nicht wahrnehmen möchten, können Sie Ihre
 Anmeldung hier stornieren:

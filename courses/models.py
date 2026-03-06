@@ -361,6 +361,11 @@ def _send_waitlist_promotion_email(registration):
     days = ', '.join(registration.course.days)
     locations = ', '.join(loc.name for loc in registration.course.locations.all())
 
+    ical_url = (
+        django_settings.SITE_URL.rstrip('/')
+        + reverse('course_ical', args=[registration.course.id])
+    )
+
     subject = render_to_string(
         'courses/email/waitlist_promotion_subject.txt',
         {'registration': registration},
@@ -368,7 +373,7 @@ def _send_waitlist_promotion_email(registration):
     body = render_to_string(
         'courses/email/waitlist_promotion_body.txt',
         {'registration': registration, 'cancel_url': cancel_url,
-         'days': days, 'locations': locations},
+         'days': days, 'locations': locations, 'ical_url': ical_url},
     )
     send_mail(
         subject,

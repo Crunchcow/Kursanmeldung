@@ -58,6 +58,11 @@
                     {% trans "Möchten Sie Ihre Anmeldung stornieren? Nutzen Sie den Link in der Bestätigungsmail." %}
                 </p>
 
+                {% if registration.status == 'CONFIRMED' %}
+                <a href="{% url 'course_ical' registration.course.id %}" class="btn btn-outline-info mr-2">
+                    &#x1F4C5; {% trans "Zum Kalender hinzufügen (.ics)" %}
+                </a>
+                {% endif %}
                 <a href="{% url 'course_list' %}" class="btn btn-primary">{% trans "Zurück zur Kursübersicht" %}</a>
             </div>
         </div>

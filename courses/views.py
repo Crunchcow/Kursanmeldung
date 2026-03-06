@@ -26,13 +26,18 @@ def _send_confirmation_email(request, registration):
     days = ', '.join(registration.course.days)
     locations = ', '.join(loc.name for loc in registration.course.locations.all())
 
+    ical_url = request.build_absolute_uri(
+        reverse('course_ical', args=[registration.course.id])
+    ) if registration.status == 'CONFIRMED' else None
+
     subject = render_to_string(
         'courses/email/confirmation_subject.txt',
         {'registration': registration}
     ).strip()
     body = render_to_string(
         'courses/email/confirmation_body.txt',
-        {'registration': registration, 'cancel_url': cancel_url, 'days': days, 'locations': locations}
+        {'registration': registration, 'cancel_url': cancel_url,
+         'days': days, 'locations': locations, 'ical_url': ical_url}
     )
     send_mail(
         subject=subject,
