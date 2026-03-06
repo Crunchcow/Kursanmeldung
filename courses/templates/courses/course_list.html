@@ -84,7 +84,13 @@
                 <td>{{ course.start_time }}&nbsp;–&nbsp;{{ course.end_time }}</td>
                 <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
-                <td>{{ course.session_count }}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-link p-0 font-weight-bold"
+                            data-toggle="modal" data-target="#sessions-modal-{{ course.id }}"
+                            title="Termine anzeigen">
+                        {{ course.session_count }}
+                    </button>
+                </td>
                 <td class="text-nowrap">{{ course.price_member }}€&nbsp;/&nbsp;{{ course.price_non_member }}€</td>
                 <td style="min-width:160px;">
                     {% if course.is_closed %}
@@ -124,6 +130,15 @@
                 <dt class="col-5">{% trans "Ort" %}</dt>
                 <dd class="col-7">{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
 
+                <dt class="col-5">{% trans "Einheiten" %}</dt>
+                <dd class="col-7">
+                    <button type="button" class="btn btn-sm btn-link p-0 font-weight-bold"
+                            data-toggle="modal" data-target="#sessions-modal-{{ course.id }}"
+                            title="Termine anzeigen">
+                        {{ course.session_count }} &rsaquo; Termine
+                    </button>
+                </dd>
+
                 <dt class="col-5">{% trans "Preis Mitglied" %}</dt>
                 <dd class="col-7">{{ course.price_member }}€</dd>
 
@@ -144,6 +159,45 @@
     </div>
     {% endfor %}
 </div>
+
+{# ── Modals: Terminübersicht je Kurs ── #}
+{% for course in courses %}
+<div class="modal fade" id="sessions-modal-{{ course.id }}" tabindex="-1" role="dialog"
+     aria-labelledby="sessions-modal-label-{{ course.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sessions-modal-label-{{ course.id }}">
+          {{ course.name }} &ndash; Termine
+          <small class="text-muted">({{ course.session_count }} Einheiten)</small>
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Schließen">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2">
+          {{ course.start_time }} &ndash; {{ course.end_time }} Uhr &nbsp;&bull;&nbsp;
+          {% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+        <ol class="pl-3 mb-0">
+          {% for d in course.session_dates %}
+          <li>{{ d|date:"l, d. F Y" }}</li>
+          {% empty %}
+          <li class="text-muted">Keine Termine hinterlegt.</li>
+          {% endfor %}
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
+        {% if not course.is_closed and not course.is_full %}
+        <a href="{% url 'course_register' course.id %}" class="btn btn-primary">Jetzt anmelden</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 
 {% else %}
     <p>{% trans "Keine Kurse verfügbar." %}</p>
