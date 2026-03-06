@@ -181,13 +181,24 @@
           {{ course.start_time }} &ndash; {{ course.end_time }} Uhr &nbsp;&bull;&nbsp;
           {% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
         </p>
-        <ol class="pl-3 mb-0">
+        <table class="table table-sm table-striped mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th style="width:60px;">Einheit</th>
+              <th>Datum</th>
+            </tr>
+          </thead>
+          <tbody>
           {% for d in course.session_dates %}
-          <li>{{ d|date:"l, d. F Y" }}</li>
+            <tr>
+              <td class="text-center">{{ forloop.counter }}</td>
+              <td>{{ d|date:"l, d. F Y" }}</td>
+            </tr>
           {% empty %}
-          <li class="text-muted">Keine Termine hinterlegt.</li>
+            <tr><td colspan="2" class="text-muted">Keine Termine hinterlegt.</td></tr>
           {% endfor %}
-        </ol>
+          </tbody>
+        </table>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
