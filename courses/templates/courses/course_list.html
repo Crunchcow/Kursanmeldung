@@ -70,9 +70,8 @@
                 <th scope="col">{% trans "Wochentage" %}</th>
                 <th scope="col">{% trans "Ort" %}</th>
                 <th scope="col">{% trans "Einheiten" %}</th>
-                <th scope="col">{% trans "Preis Mitglied" %}</th>
-                <th scope="col">{% trans "Preis Nicht-Mitglied" %}</th>
-                <th scope="col">&nbsp;</th>
+                <th scope="col">{% trans "Preis" %}<br><small class="text-muted font-weight-normal">Mitgl. / Nicht-Mitgl.</small></th>
+                <th scope="col" style="min-width:160px;">&nbsp;</th>
             </tr>
         </thead>
         <tbody>
@@ -87,9 +86,8 @@
                 <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{{ course.session_count }}</td>
-                <td>{{ course.price_member }}€</td>
-                <td>{{ course.price_non_member }}€</td>
-                <td>
+                <td class="text-nowrap">{{ course.price_member }}€&nbsp;/&nbsp;{{ course.price_non_member }}€</td>
+                <td style="min-width:160px;">
                     {% if course.is_closed %}
                         <span class="badge badge-secondary">{% trans "Anmeldung geschlossen" %}</span>
                     {% elif course.is_full %}
