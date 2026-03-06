@@ -24,7 +24,7 @@ class RegistrationForm(forms.ModelForm):
         # set label lazily to avoid url reverse at import
         url = reverse_lazy('privacy')
         self.fields['accept_terms'].label = mark_safe(
-            _("Ich akzeptiere die Teilnahmebedingungen und <a href='%(url)s' target='_blank'>Datenschutzbestimmungen</a>")
+            _("Ich habe die <a href='%(url)s' target='_blank'>Datenschutzbestimmungen</a> gelesen und akzeptiere diese.")
             % {'url': url}
         )
         # Halben Kurs nur anbieten, wenn der Kurs es erlaubt
@@ -49,7 +49,7 @@ class RegistrationForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         if not cleaned.get('accept_terms'):
-            raise forms.ValidationError(_("Du musst die Bedingungen akzeptieren."))
+            raise forms.ValidationError(_("Bitte akzeptiere die Datenschutzbestimmungen."))
         # IBAN-Validierung
         iban = cleaned.get('iban')
         if iban:
