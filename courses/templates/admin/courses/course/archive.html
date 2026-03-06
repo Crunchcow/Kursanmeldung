@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Kursarchiv{% endblock %}
+
+{% block content %}
+<h1>Kursarchiv</h1>
+<p class="help">Alle abgeschlossenen Kurse (Enddatum in der Vergangenheit).</p>
+
+<p>
+  <a href="{% url 'admin:courses_course_changelist' %}" class="button">&larr; Zur Kursliste</a>
+</p>
+
+{% if courses %}
+<div style="overflow-x:auto;">
+  <table id="result_list" class="table">
+    <thead>
+      <tr>
+        <th scope="col">Kurs</th>
+        <th scope="col">Typ</th>
+        <th scope="col">Zeitraum</th>
+        <th scope="col">Uhrzeit</th>
+        <th scope="col">Wochentage</th>
+        <th scope="col">Ort</th>
+        <th scope="col">Einheiten</th>
+        <th scope="col">Anmeldungen</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for course in courses %}
+      <tr class="{% cycle 'row1' 'row2' %}">
+        <td>
+          <a href="{% url 'admin:courses_course_change' course.pk %}">
+            <strong>{{ course.name }}</strong>
+          </a>
+          {% if course.description %}<br><small>{{ course.description }}</small>{% endif %}
+        </td>
+        <td>{{ course.get_course_type_display }}</td>
+        <td>{{ course.start_date }} &ndash; {{ course.end_date }}</td>
+        <td>{{ course.start_time }} &ndash; {{ course.end_time }}</td>
+        <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        <td>{{ course.session_count }}</td>
+        <td>{{ course.current_registrations }} / {{ course.max_participants }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <p class="help">Noch keine archivierten Kurse vorhanden.</p>
+{% endif %}
+{% endblock %}

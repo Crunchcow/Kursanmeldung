@@ -138,18 +138,6 @@ def course_cancel(request, token):
     return render(request, 'courses/cancel_confirm.html', {'registration': registration})
 
 
-def course_archive(request):
-    """Bereits abgelaufene Kurse (Enddatum in der Vergangenheit) als Archiv anzeigen."""
-    from datetime import date
-    today = date.today()
-    courses = (
-        Course.objects
-        .filter(end_date__lt=today)
-        .order_by('-start_date')
-    )
-    return render(request, 'courses/course_archive.html', {'courses': courses})
-
-
 def course_ical(request, course_id):
     """Gibt eine .ics-Datei mit allen Kurseinheiten zum Kalender-Import zurueck."""
     from datetime import datetime, timezone as dt_tz

@@ -112,6 +112,8 @@ class CourseAdmin(admin.ModelAdmin):
     attendance_export_link.short_description = _('Anwesenheitsliste')
     attendance_export_link.admin_order_field = None
 
+    change_list_template = 'admin/courses/course/change_list.html'
+
     def get_urls(self):
         urls = super().get_urls()
         custom = [
@@ -120,8 +122,31 @@ class CourseAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.export_attendance_direct),
                 name='courses_course_export_attendance',
             ),
+            path(
+                'archiv/',
+                self.admin_site.admin_view(self.archive_view),
+                name='courses_course_archiv',
+            ),
         ]
         return custom + urls
+
+    def archive_view(self, request):
+        """Admin-Ansicht: abgelaufene Kurse im Archiv."""
+        from datetime import date
+        from django.shortcuts import render as django_render
+        today = date.today()
+        courses = (
+            Course.objects
+            .filter(end_date__lt=today)
+            .order_by('-start_date')
+        )
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Kursarchiv',
+            'courses': courses,
+            'opts': self.model._meta,
+        }
+        return django_render(request, 'admin/courses/course/archive.html', context)
 
     def export_attendance_direct(self, request, course_id):
         """Direkt-Download der Anwesenheitsliste fuer einen einzelnen Kurs."""
