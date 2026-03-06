@@ -85,7 +85,9 @@
                 <td>{% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>
-                    <button type="button" class="btn btn-sm btn-link p-0 font-weight-bold"
+                    <button type="button"
+                            class="btn btn-link p-0 font-weight-bold border-0 shadow-none"
+                            style="color:#c00000;"
                             data-toggle="modal" data-target="#sessions-modal-{{ course.id }}"
                             title="Termine anzeigen">
                         {{ course.session_count }}
