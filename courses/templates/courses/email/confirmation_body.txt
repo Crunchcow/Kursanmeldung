@@ -7,7 +7,7 @@ Zeitraum:   {{ registration.course.start_date }} – {{ registration.course.end_
 Uhrzeit:    {{ registration.course.start_time }} – {{ registration.course.end_time }}
 Wochentage: {{ days }}
 Ort:        {{ locations }}
-Betrag:     {{ registration.total_price }}€{% if registration.status == 'WAITLIST' %} (Warteliste – kein Einzug bis Platzbestätigung){% else %} (wird per SEPA-Lastschrift eingezogen){% endif %}
+Betrag:     {% if registration.total_price == 0 %}Kostenlos{% else %}{{ registration.total_price }}€{% if registration.status == 'WAITLIST' %} (Warteliste – kein Einzug bis Platzbestätigung){% else %} (wird per SEPA-Lastschrift eingezogen){% endif %}{% endif %}
 
 {% if registration.status == 'WAITLIST' %}
 Sie befinden sich auf der Warteliste. Wir benachrichtigen Sie, sobald ein Platz frei wird.
@@ -16,10 +16,10 @@ Sie befinden sich auf der Warteliste. Wir benachrichtigen Sie, sobald ein Platz 
 {% if ical_url %}Kalender-Eintrag herunterladen (.ics):
 {{ ical_url }}
 
-{% endif %}----------------------------------------------------------------------
+{% endif %}{% if registration.course.instructor %}Bei Fragen wenden Sie sich an Ihre Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}.{% else %}Bei Fragen können Sie uns unter info@sv-westfalia-osterwick.de erreichen.{% endif %}
+
 Möchten Sie Ihre Anmeldung stornieren? Klicken Sie auf diesen Link:
 {{ cancel_url }}
-----------------------------------------------------------------------
 
 Mit freundlichen Grüßen
 SV Westfalia Osterwick 1923 e.V.

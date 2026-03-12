@@ -11,9 +11,9 @@ class RegistrationForm(forms.ModelForm):
         required=True,
         label=_(
             "Ich erteile hiermit ein SEPA-Lastschriftmandat. Der Verein ist berechtigt, "
-            "den faelligen Kursbetrag von meinem oben angegebenen Konto einzuziehen. "
+            "den fälligen Kursbetrag von meinem oben angegebenen Konto einzuziehen. "
             "Wenn das Konto die erforderliche Deckung nicht aufweist, besteht seitens "
-            "des kontofuehrenden Kreditinstituts keine Verpflichtung zur Einloesung. "
+            "des kontoführenden Kreditinstituts keine Verpflichtung zur Einlösung. "
             "Ich kann innerhalb von 8 Wochen ab Buchungsdatum die Erstattung des "
             "belasteten Betrages verlangen."
         ),

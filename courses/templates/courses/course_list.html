@@ -51,7 +51,7 @@
     </div>
     {% if day_filter or type_filter %}
     <div class="col-auto ms-2">
-      <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-secondary">Filter zuruecksetzen</a>
+      <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-secondary">Filter zurücksetzen</a>
     </div>
     {% endif %}
   </div>
@@ -94,7 +94,9 @@
                         {{ course.session_count }}
                     </button>
                 </td>
-                <td class="text-nowrap">{{ course.price_member }}€&nbsp;/&nbsp;{{ course.price_non_member }}€</td>
+                <td class="text-nowrap">
+                    {% if course.price_member == 0 %}Kostenlos{% else %}{{ course.price_member }}€{% endif %}&nbsp;/&nbsp;{{ course.price_non_member }}€
+                </td>
                 <td style="min-width:160px;">
                     {% if course.is_closed %}
                         <span class="badge text-bg-secondary">{% trans "Anmeldung geschlossen" %}</span>

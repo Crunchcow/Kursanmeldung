@@ -44,10 +44,10 @@
                 <form method="post" id="regform">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    <div id="price-summary" class="mt-2 alert alert-secondary" style="display:none;">
-                        <p><strong>Zu zahlender Betrag:</strong> <span id="selected-price">0</span>€</p>
+                    <div id="price-summary" class="mt-2 alert alert-info" style="display:none;">
+                        <strong>Zu zahlender Betrag:</strong> <span id="selected-price">0</span>€
                     </div>
-                    <button type="submit" class="btn btn-primary">{% trans "Absenden" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Jetzt anmelden" %}</button>
                 </form>
             </div>
         </div>

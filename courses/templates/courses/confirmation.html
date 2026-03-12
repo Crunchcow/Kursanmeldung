@@ -34,11 +34,16 @@
                     <dd class="col-sm-8">{% for loc in registration.course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
 
                     <dt class="col-sm-4">{% trans "Betrag" %}</dt>
-                    <dd class="col-sm-8"><strong>{{ registration.total_price }}€</strong>
-                        {% if registration.status == 'WAITLIST' %}
-                            <span class="badge text-bg-warning ms-1">{% trans "Warteliste – kein Einzug bis Platzbestätigung" %}</span>
+                    <dd class="col-sm-8">
+                        {% if registration.total_price == 0 %}
+                            <strong class="text-success">Kostenlos</strong>
                         {% else %}
-                            <small class="text-muted">({% trans "wird per SEPA-Lastschrift eingezogen" %})</small>
+                            <strong>{{ registration.total_price }}€</strong>
+                            {% if registration.status == 'WAITLIST' %}
+                                <span class="badge text-bg-warning ms-1">{% trans "Warteliste – kein Einzug bis Platzbestätigung" %}</span>
+                            {% else %}
+                                <small class="text-muted">({% trans "wird per SEPA-Lastschrift eingezogen" %})</small>
+                            {% endif %}
                         {% endif %}
                     </dd>
                 </dl>
@@ -55,7 +60,11 @@
 
                 <hr>
                 <p class="text-muted small">
-                    {% trans "Möchten Sie Ihre Anmeldung stornieren? Nutzen Sie den Link in der Bestätigungsmail." %}
+                    {% if registration.course.instructor %}
+                        Bei Fragen wenden Sie sich an Ihre Kursleitung: <strong>{{ registration.course.instructor }}</strong>{% if registration.course.instructor_user.email %} &ndash; <a href="mailto:{{ registration.course.instructor_user.email }}">{{ registration.course.instructor_user.email }}</a>{% endif %}.
+                    {% else %}
+                        Bei Fragen wenden Sie sich an <a href="mailto:info@sv-westfalia-osterwick.de">info@sv-westfalia-osterwick.de</a>.
+                    {% endif %}
                 </p>
 
                 {% if registration.status == 'CONFIRMED' %}

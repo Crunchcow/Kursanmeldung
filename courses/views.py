@@ -88,12 +88,12 @@ def register(request, course_id):
 
     # Anmeldung manuell gesperrt
     if course.is_closed:
-        messages.error(request, _("Die Anmeldung fuer diesen Kurs ist derzeit geschlossen."))
+        messages.error(request, _("Die Anmeldung für diesen Kurs ist derzeit geschlossen."))
         return redirect('course_list')
 
     # Automatische Sperre: Kurs hat bereits begonnen
     if course.start_date and course.start_date <= date.today():
-        messages.error(request, _("Die Anmeldung fuer diesen Kurs ist nicht mehr moeglich, da der Kurs bereits begonnen hat."))
+        messages.error(request, _("Die Anmeldung für diesen Kurs ist nicht mehr möglich, da der Kurs bereits begonnen hat."))
         return redirect('course_list')
 
     if request.method == 'POST':
@@ -102,7 +102,7 @@ def register(request, course_id):
             email = form.cleaned_data['email']
             # Doppel-Anmeldung verhindern (ignoriere stornierte)
             if Registration.objects.filter(course=course, email__iexact=email).exclude(status='CANCELLED').exists():
-                messages.error(request, _("Mit dieser E-Mail-Adresse besteht bereits eine Anmeldung fuer diesen Kurs."))
+                messages.error(request, _("Mit dieser E-Mail-Adresse besteht bereits eine Anmeldung für diesen Kurs."))
                 return render(request, 'courses/register.html', {'course': course, 'form': form})
             reg = form.save(commit=False)
             reg.course = course

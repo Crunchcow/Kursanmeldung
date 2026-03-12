@@ -34,7 +34,7 @@ class Course(models.Model):
     SESSION_MODE_COUNT  = 'COUNT'
     SESSION_MODE_MANUAL = 'MANUAL'
     SESSION_MODE_CHOICES = [
-        (SESSION_MODE_AUTO,   _('Automatisch (Start + Ende + Wochentage, NRW-Feiertage uebersprungen)')),
+        (SESSION_MODE_AUTO,   _('Automatisch (Start + Ende + Wochentage, NRW-Feiertage übersprungen)')),
         (SESSION_MODE_COUNT,  _('Einheitenanzahl (Start + Wochentage + Anzahl, Enddatum wird berechnet)')),
         (SESSION_MODE_MANUAL, _('Manuell (Einzeltermine selbst bestimmen)')),
     ]
@@ -64,7 +64,7 @@ class Course(models.Model):
     is_closed = models.BooleanField(
         default=False,
         verbose_name=_('Anmeldung gesperrt'),
-        help_text=_('Wenn aktiv, koennen sich keine neuen Teilnehmer anmelden.'),
+        help_text=_('Wenn aktiv, können sich keine neuen Teilnehmer anmelden.'),
     )
     instructor = models.CharField(max_length=200, blank=True, verbose_name=_('Kursleitung'))
 
@@ -75,7 +75,7 @@ class Course(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         verbose_name=_('Kursleitung (Benutzer)'),
-        help_text=_('Waehle den Benutzer, der fuer diesen Kurs verantwortlich ist.'),
+        help_text=_('Wähle den Benutzer, der für diesen Kurs verantwortlich ist.'),
     )
 
     # ── Neue Felder Phase 1 ───────────────────────────────────────────────────
@@ -89,7 +89,7 @@ class Course(models.Model):
         null=True,
         blank=True,
         verbose_name=_('Anzahl Einheiten'),
-        help_text=_('Nur fuer Modus "Einheitenanzahl". Enddatum wird automatisch berechnet.'),
+        help_text=_('Nur für Modus "Einheitenanzahl". Enddatum wird automatisch berechnet.'),
     )
     course_type = models.CharField(
         max_length=10,
@@ -232,7 +232,7 @@ class CourseSession(models.Model):
     is_cancelled = models.BooleanField(
         default=False,
         verbose_name=_('Ausgefallen'),
-        help_text=_('Einheit faellt aus (z.B. nachtraeglicher Feiertag, Ausnahme).'),
+        help_text=_('Einheit fällt aus (z.B. nachträglicher Feiertag, Ausnahme.'),
     )
     note = models.CharField(max_length=200, blank=True, verbose_name=_('Hinweis'))
 
@@ -248,7 +248,7 @@ class CourseSession(models.Model):
 
 class Registration(models.Model):
     STATUS_CHOICES = [
-        ('CONFIRMED', _('Bestaetigt')),
+        ('CONFIRMED', _('Bestätigt')),
         ('WAITLIST',  _('Warteliste')),
         ('CANCELLED', _('Storniert')),
     ]
@@ -259,7 +259,7 @@ class Registration(models.Model):
     phone = models.CharField(
         max_length=30,
         verbose_name=_('Handy / Telefon'),
-        help_text=_('Fuer Rueckfragen bei Kursaenderungen.'),
+        help_text=_('Für Rückfragen bei Kursänderungen.'),
     )
     iban = models.CharField(max_length=34, verbose_name=_('IBAN'))
     bic = models.CharField(max_length=11, blank=True, verbose_name=_('BIC'))

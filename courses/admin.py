@@ -59,8 +59,8 @@ class CourseAdmin(admin.ModelAdmin):
         (_('Einheiten'), {
             'fields': ('session_mode', 'num_sessions', 'session_count_display'),
             'description': _(
-                'Waehle den Modus und klicke dann die Aktion "Einheiten generieren". '
-                'Im Modus "Manuell" koennen die Einheiten unten direkt eingetragen werden.'
+                'Wähle den Modus und klicke dann die Aktion "Einheiten generieren". '
+                'Im Modus "Manuell" können die Einheiten unten direkt eingetragen werden.'
             ),
         }),
         (_('Anmeldung'), {
@@ -201,7 +201,7 @@ class CourseAdmin(admin.ModelAdmin):
             request,
             _(f'{queryset.count()} Kurs(e) neu generiert, insgesamt {total} Einheiten.'),
         )
-    generate_sessions_action.short_description = _('Einheiten generieren (NRW-Feiertage ueberspringen)')
+    generate_sessions_action.short_description = _('Einheiten generieren (NRW-Feiertage überspringen)')
 
     def copy_course_with_participants(self, request, queryset):
         """Kopiert einen Kurs inkl. aller aktiven Teilnehmer (als Warteliste)."""
@@ -209,7 +209,7 @@ class CourseAdmin(admin.ModelAdmin):
         if queryset.count() != 1:
             self.message_user(
                 request,
-                _('Bitte genau einen Kurs auswaehlen.'),
+                _('Bitte genau einen Kurs auswählen.'),
                 level='error',
             )
             return
@@ -263,8 +263,8 @@ class CourseAdmin(admin.ModelAdmin):
         self.message_user(
             request,
             _(f'Folgekurs "{new_course.name}" angelegt mit {len(new_regs)} Teilnehmern auf der '
-              f'Warteliste. Bitte Datum setzen, unerwuenschte Teilnehmer loeschen und '
-              f'dann "Bestaetigen und Info-Mail senden" ausfuehren.'),
+              f'Warteliste. Bitte Datum setzen, unerwünschte Teilnehmer löschen und '
+              f'dann "Bestätigen und Info-Mail senden" ausführen.'),
         )
         return HttpResponseRedirect(
             reverse('admin:courses_course_change', args=[new_course.pk])
@@ -452,9 +452,9 @@ class RegistrationAdmin(admin.ModelAdmin):
             count += 1
         self.message_user(
             request,
-            _(f'{count} Anmeldung(en) bestaetigt und Info-Mail gesendet.'),
+            _(f'{count} Anmeldung(en) bestätigt und Info-Mail gesendet.'),
         )
-    confirm_and_notify.short_description = _('Auswahl bestaetigen + Info-Mail senden (Folgekurs)')
+    confirm_and_notify.short_description = _('Auswahl bestätigen + Info-Mail senden (Folgekurs)')
 
     def export_as_csv(self, request, queryset):
         import csv
@@ -489,7 +489,7 @@ class RegistrationAdmin(admin.ModelAdmin):
                 reg.iban, reg.bic or '', reg.account_holder, amount,
             ])
         return response
-    export_debits.short_description = _('Einzuege als CSV exportieren')
+    export_debits.short_description = _('Einzüge als CSV exportieren')
 
     def export_wiso_meinverein(self, request, queryset):
         """Exportiert NUR bestaetigte Anmeldungen als WISO-MeinVerein-CSV."""
@@ -498,7 +498,7 @@ class RegistrationAdmin(admin.ModelAdmin):
 
         is_kassierer = request.user.groups.filter(name='Kassierer').exists()
         if not (request.user.is_superuser or is_kassierer):
-            self.message_user(request, _('Sie haben keine Berechtigung fuer diesen Export.'), msg.ERROR)
+            self.message_user(request, _('Sie haben keine Berechtigung für diesen Export.'), msg.ERROR)
             return
 
         headers = [
@@ -525,7 +525,7 @@ class RegistrationAdmin(admin.ModelAdmin):
                 reg.account_holder, amount, purpose, mandate_ref, mandate_date,
             ])
         return response
-    export_wiso_meinverein.short_description = _('WISO MeinVerein \u2013 SEPA-Lastschriften exportieren (nur Bestaetigt)')
+    export_wiso_meinverein.short_description = _('WISO MeinVerein – SEPA-Lastschriften exportieren (nur Bestätigt)')
 
     def has_module_permission(self, request):
         if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
