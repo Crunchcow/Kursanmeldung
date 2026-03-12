@@ -36,7 +36,7 @@
                     <dt class="col-sm-4">{% trans "Betrag" %}</dt>
                     <dd class="col-sm-8"><strong>{{ registration.total_price }}€</strong>
                         {% if registration.status == 'WAITLIST' %}
-                            <span class="badge badge-warning ml-1">{% trans "Warteliste – kein Einzug bis Platzbestätigung" %}</span>
+                            <span class="badge text-bg-warning ms-1">{% trans "Warteliste – kein Einzug bis Platzbestätigung" %}</span>
                         {% else %}
                             <small class="text-muted">({% trans "wird per SEPA-Lastschrift eingezogen" %})</small>
                         {% endif %}
@@ -59,7 +59,7 @@
                 </p>
 
                 {% if registration.status == 'CONFIRMED' %}
-                <a href="{% url 'course_ical' registration.course.id %}" class="btn btn-outline-info mr-2">
+                <a href="{% url 'course_ical' registration.course.id %}" class="btn btn-outline-info me-2">
                     &#x1F4C5; {% trans "Zum Kalender hinzufügen (.ics)" %}
                 </a>
                 {% endif %}

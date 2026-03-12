@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # third-party
     'crispy_forms',
-    'crispy_bootstrap4',
+    'crispy_bootstrap5',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -159,7 +159,8 @@ ACCOUNT_ADAPTER = 'courses.views.NoSignupAdapter'
 ACCOUNT_SIGNUP_REDIRECT_URL = '/accounts/login/'
 
 # Crispy forms
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/

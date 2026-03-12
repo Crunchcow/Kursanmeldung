@@ -4,6 +4,7 @@
 {% block title %}{% trans "Kurse" %}{% endblock %}
 
 {% block content %}
+<div class="content-card">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="mb-0">Verfügbare Kurse</h1>
 </div>
@@ -11,7 +12,7 @@
 {# ── Kursplan-Übersicht ── #}
 <div class="mb-4">
   <button class="btn btn-secondary mb-3" type="button"
-          data-toggle="collapse" data-target="#kursplanBilder"
+          data-bs-toggle="collapse" data-bs-target="#kursplanBilder"
           aria-expanded="false" aria-controls="kursplanBilder">
     <span class="collapse-icon">▶</span> {% trans "Kursplan anzeigen" %}
   </button>
@@ -29,9 +30,9 @@
 
 {# ── Filter ── #}
 <form method="get" class="mb-4">
-  <div class="form-row align-items-end">
+  <div class="row align-items-end g-2">
     <div class="col-auto">
-      <label class="mr-1"><strong>Wochentag:</strong></label>
+      <label class="me-1"><strong>Wochentag:</strong></label>
       <select name="day" class="form-control form-control-sm d-inline-block" style="width:auto;" onchange="this.form.submit()">
         <option value="">Alle</option>
         {% for code, label in week_days %}
@@ -39,8 +40,8 @@
         {% endfor %}
       </select>
     </div>
-    <div class="col-auto ml-3">
-      <label class="mr-1"><strong>Kurstyp:</strong></label>
+    <div class="col-auto ms-3">
+      <label class="me-1"><strong>Kurstyp:</strong></label>
       <select name="type" class="form-control form-control-sm d-inline-block" style="width:auto;" onchange="this.form.submit()">
         <option value="">Alle</option>
         {% for code, label in course_types %}
@@ -49,7 +50,7 @@
       </select>
     </div>
     {% if day_filter or type_filter %}
-    <div class="col-auto ml-2">
+    <div class="col-auto ms-2">
       <a href="{% url 'course_list' %}" class="btn btn-sm btn-outline-secondary">Filter zuruecksetzen</a>
     </div>
     {% endif %}
@@ -61,15 +62,13 @@
 {# ── Desktop-Tabelle (ab md) ── #}
 <div class="d-none d-md-block table-responsive">
     <table class="table table-striped table-hover">
-        <thead class="thead-light">
-            <tr>
-                <th scope="col">{% trans "Kurs" %}</th>
+        <thead class="table-light">
                 <th scope="col">{% trans "Zeitraum" %}</th>
                 <th scope="col">{% trans "Uhrzeit" %}</th>
                 <th scope="col">{% trans "Wochentage" %}</th>
                 <th scope="col">{% trans "Ort" %}</th>
                 <th scope="col">{% trans "Einheiten" %}</th>
-                <th scope="col">{% trans "Preis" %}<br><small class="text-muted font-weight-normal">Mitgl. / Nicht-Mitgl.</small></th>
+                <th scope="col">{% trans "Preis" %}<br><small class="text-muted fw-normal">Mitgl. / Nicht-Mitgl.</small></th>
                 <th scope="col" style="min-width:160px;">&nbsp;</th>
             </tr>
         </thead>
@@ -86,9 +85,9 @@
                 <td>{% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
                 <td>
                     <button type="button"
-                            class="btn btn-link p-0 font-weight-bold border-0 shadow-none"
+                            class="btn btn-link p-0 fw-bold border-0 shadow-none"
                             style="color:#c00000;"
-                            data-toggle="modal" data-target="#sessions-modal-{{ course.id }}"
+                            data-bs-toggle="modal" data-bs-target="#sessions-modal-{{ course.id }}"
                             title="Termine anzeigen">
                         {{ course.session_count }}
                     </button>
@@ -96,13 +95,13 @@
                 <td class="text-nowrap">{{ course.price_member }}€&nbsp;/&nbsp;{{ course.price_non_member }}€</td>
                 <td style="min-width:160px;">
                     {% if course.is_closed %}
-                        <span class="badge badge-secondary">{% trans "Anmeldung geschlossen" %}</span>
+                        <span class="badge text-bg-secondary">{% trans "Anmeldung geschlossen" %}</span>
                     {% elif course.is_full %}
-                        <span class="badge badge-warning">{% trans "Warteliste" %}</span><br>
+                        <span class="badge text-bg-warning">{% trans "Warteliste" %}</span><br>
                         <small class="text-muted">{% trans "Kurs ausgebucht" %}</small><br>
                         <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-warning mt-1" style="color:#000;">{% trans "Auf Warteliste" %}</a>
                     {% else %}
-                        <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span><br>
+                        <span class="badge text-bg-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span><br>
                         <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-primary mt-1">{% trans "Anmelden" %}</a>
                     {% endif %}
                 </td>
@@ -134,9 +133,9 @@
 
                 <dt class="col-5">{% trans "Einheiten" %}</dt>
                 <dd class="col-7">
-                    <button type="button" class="btn btn-sm btn-link p-0 font-weight-bold"
+                    <button type="button" class="btn btn-sm btn-link p-0 fw-bold"
                             style="color:#c00000;"
-                            data-toggle="modal" data-target="#sessions-modal-{{ course.id }}"
+                            data-bs-toggle="modal" data-bs-target="#sessions-modal-{{ course.id }}"
                             title="Termine anzeigen">
                         {{ course.session_count }} &rsaquo; Termine
                     </button>
@@ -149,14 +148,14 @@
                 <dd class="col-7">{{ course.price_non_member }}€</dd>
             </dl>
             {% if course.is_closed %}
-                <span class="badge badge-secondary">{% trans "Anmeldung geschlossen" %}</span>
+                <span class="badge text-bg-secondary">{% trans "Anmeldung geschlossen" %}</span>
             {% elif course.is_full %}
-                <span class="badge badge-warning">{% trans "Warteliste" %}</span>
+                <span class="badge text-bg-warning">{% trans "Warteliste" %}</span>
                 <small class="text-muted d-block mb-1">{% trans "Kurs ausgebucht" %}</small>
                 <a href="{% url 'course_register' course.id %}" class="btn btn-sm btn-warning" style="color:#000;">{% trans "Auf Warteliste" %}</a>
             {% else %}
-                <span class="badge badge-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span>
-                <a href="{% url 'course_register' course.id %}" class="btn btn-primary btn-block mt-2">{% trans "Anmelden" %}</a>
+                <span class="badge text-bg-success">{{ course.free_spots }} {% trans "Platz/Plätze frei" %}</span>
+                <a href="{% url 'course_register' course.id %}" class="btn btn-primary w-100 mt-2">{% trans "Anmelden" %}</a>
             {% endif %}
         </div>
     </div>
@@ -174,9 +173,7 @@
           {{ course.name }} &ndash; Termine
           <small class="text-muted">({{ course.session_count }} Einheiten)</small>
         </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Schließen">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
       </div>
       <div class="modal-body">
         <p class="text-muted small mb-2">
@@ -184,7 +181,7 @@
           {% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
         </p>
         <table class="table table-sm table-striped mb-0">
-          <thead class="thead-light">
+          <thead class="table-light">
             <tr>
               <th class="text-center" style="width:60px;">Einheit</th>
               <th class="text-center">Datum</th>
@@ -203,7 +200,7 @@
         </table>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
         {% if not course.is_closed and not course.is_full %}
         <a href="{% url 'course_register' course.id %}" class="btn btn-primary">Jetzt anmelden</a>
         {% endif %}
@@ -216,14 +213,19 @@
 {% else %}
     <p>{% trans "Keine Kurse verfügbar." %}</p>
 {% endif %}
+</div>{# /content-card #}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  $('#kursplanBilder').on('show.bs.collapse', function () {
-    $(this).prev().find('.collapse-icon').text('▼');
-  }).on('hide.bs.collapse', function () {
-    $(this).prev().find('.collapse-icon').text('▶');
-  });
+  var el = document.getElementById('kursplanBilder');
+  if (el) {
+    el.addEventListener('show.bs.collapse', function () {
+      document.querySelector('[data-bs-target="#kursplanBilder"] .collapse-icon').textContent = '▼';
+    });
+    el.addEventListener('hide.bs.collapse', function () {
+      document.querySelector('[data-bs-target="#kursplanBilder"] .collapse-icon').textContent = '▶';
+    });
+  }
 </script>
 {% endblock %}
