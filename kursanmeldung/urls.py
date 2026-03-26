@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    # Damit Django-Admin auf der Login-Seite automatisch einen
+    # "Passwort vergessen?"-Link anzeigt, leiten wir auf allauths
+    # eigene (bereits gestaltete) Passwort-Reset-Seite weiter.
+    path('admin/password_reset/', RedirectView.as_view(url='/accounts/password/reset/'), name='admin_password_reset'),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('courses.urls')),
