@@ -36,6 +36,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000       # 1 Jahr – nur aktivieren wenn HTTPS dauerhaft!
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    # HTTPS-Redirect wird durch Nginx übernommen, nicht durch Django
+    SECURE_SSL_REDIRECT = False
+    SILENCED_SYSTEM_CHECKS = ['security.W008']
 
 
 # Application definition
