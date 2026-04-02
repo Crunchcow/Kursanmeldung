@@ -13,13 +13,12 @@ Betrag:     {% if registration.total_price == 0 %}Kostenlos{% else %}{{ registra
 Kalender-Eintrag herunterladen (.ics):
 {{ ical_url }}
 
-----------------------------------------------------------------------
-{% if registration.course.instructor %}Bei Fragen wenden Sie sich an Ihre Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}.{% else %}Bei Fragen können Sie uns unter info@sv-westfalia-osterwick.de erreichen.{% endif %}
+Bei Fragen wenden Sie sich an:
+{% if registration.course.instructor %}Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}{% else %}SV Westfalia Osterwick 1923 e.V. – Lemke@westfalia-osterwick.de{% endif %}
 
 Falls Sie den Platz doch nicht wahrnehmen möchten, können Sie Ihre
 Anmeldung hier stornieren:
 {{ cancel_url }}
-----------------------------------------------------------------------
 
 Mit freundlichen Grüßen
 SV Westfalia Osterwick 1923 e.V.

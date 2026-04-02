@@ -16,7 +16,8 @@ Sie befinden sich auf der Warteliste. Wir benachrichtigen Sie, sobald ein Platz 
 {% if ical_url %}Kalender-Eintrag herunterladen (.ics):
 {{ ical_url }}
 
-{% endif %}{% if registration.course.instructor %}Bei Fragen wenden Sie sich an Ihre Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}.{% else %}Bei Fragen können Sie uns unter info@sv-westfalia-osterwick.de erreichen.{% endif %}
+{% endif %}Bei Fragen wenden Sie sich an:
+{% if registration.course.instructor %}Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}{% else %}SV Westfalia Osterwick 1923 e.V. – Lemke@westfalia-osterwick.de{% endif %}
 
 Möchten Sie Ihre Anmeldung stornieren? Klicken Sie auf diesen Link:
 {{ cancel_url }}
