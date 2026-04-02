@@ -225,6 +225,9 @@ class Course(models.Model):
         super().save(*args, **kwargs)
         if regenerate:
             self.generate_sessions()
+        elif self.session_mode != self.SESSION_MODE_MANUAL and not self.sessions.exists():
+            # Bestehende Kurse ohne Einheiten beim naechsten Speichern nachholen
+            self.generate_sessions()
 
     def clean(self):
         from django.core.exceptions import ValidationError
