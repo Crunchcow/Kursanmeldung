@@ -10,11 +10,14 @@ Wochentage: {{ days }}
 Ort:        {{ locations }}
 Betrag:     {% if registration.total_price == 0 %}Kostenlos{% else %}{{ registration.total_price }}€ (wird per SEPA-Lastschrift eingezogen){% endif %}
 
-Kalender-Eintrag herunterladen (.ics):
+{% if registration.course.instructor %}Ihre Kursleitung: {{ registration.course.instructor }}
+{% endif %}Kalender-Eintrag herunterladen (.ics):
 {{ ical_url }}
 
-Bei Fragen wenden Sie sich an:
-{% if registration.course.instructor %}Kursleitung: {{ registration.course.instructor }}{% if registration.course.instructor_user.email %} ({{ registration.course.instructor_user.email }}){% endif %}{% else %}SV Westfalia Osterwick 1923 e.V. – Lemke@westfalia-osterwick.de{% endif %}
+Bei Rückfragen wenden Sie sich bitte an:
+Monique Kramer
+Tel.: 0175 8717397
+E-Mail: m.kramer@westfalia-osterwick.de
 
 Falls Sie den Platz doch nicht wahrnehmen möchten, können Sie Ihre
 Anmeldung hier stornieren:
