@@ -208,6 +208,24 @@ class Course(models.Model):
         self.sessions.all().delete()
         CourseSession.objects.bulk_create(sessions_to_create)
 
+    def save(self, *args, **kwargs):
+        _schedule_fields = ('start_date', 'end_date', 'days', 'session_mode', 'num_sessions')
+        is_new = self.pk is None
+        regenerate = False
+        if self.session_mode != self.SESSION_MODE_MANUAL:
+            if is_new:
+                regenerate = True
+            else:
+                old = Course.objects.filter(pk=self.pk).values(*_schedule_fields).first()
+                if old:
+                    regenerate = any(
+                        str(getattr(self, f) or '') != str(old[f] or '')
+                        for f in _schedule_fields
+                    )
+        super().save(*args, **kwargs)
+        if regenerate:
+            self.generate_sessions()
+
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.end_date and self.start_date and self.end_date < self.start_date:
