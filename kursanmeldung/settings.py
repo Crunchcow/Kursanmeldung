@@ -30,9 +30,11 @@ CSRF_TRUSTED_ORIGINS = config(
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Sicherheits-Einstellungen für Produktionsbetrieb (DEBUG=False)
+# SESSION_COOKIE_SECURE und CSRF_COOKIE_SECURE können via .env auf False gesetzt
+# werden, solange noch kein HTTPS eingerichtet ist (vor certbot).
 if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=True, cast=bool)
     SECURE_HSTS_SECONDS = 31536000       # 1 Jahr – nur aktivieren wenn HTTPS dauerhaft!
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
