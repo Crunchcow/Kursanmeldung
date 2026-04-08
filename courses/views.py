@@ -1,3 +1,6 @@
+import secrets as _secrets
+import urllib.parse as _urlparse
+import requests as _requests
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from .models import Course, Registration
@@ -182,3 +185,127 @@ def privacy(request):
 
 def impressum(request):
     return render(request, 'courses/impressum.html')
+
+
+# ---------------------------------------------------------------------------
+# OIDC-Integration mit ClubAuth
+# ---------------------------------------------------------------------------
+
+def oidc_login(request):
+    """Startet den OIDC-Flow: leitet zu ClubAuth weiter."""
+    base_url = getattr(django_settings, 'OIDC_BASE_URL', '').rstrip('/')
+    client_id = getattr(django_settings, 'OIDC_CLIENT_ID', '')
+    redirect_uri = getattr(django_settings, 'OIDC_REDIRECT_URI', '')
+
+    if not base_url or not client_id:
+        messages.error(request, 'OIDC nicht konfiguriert.')
+        return redirect('/admin/login/')
+
+    state = _secrets.token_urlsafe(32)
+    request.session['oidc_state'] = state
+
+    # Sicherstellen, dass next nur lokale Pfade akzeptiert werden
+    next_url = request.GET.get('next', '/admin/')
+    parsed = _urlparse.urlparse(next_url)
+    if parsed.scheme or parsed.netloc:
+        next_url = '/admin/'
+    request.session['oidc_next'] = next_url
+
+    params = _urlparse.urlencode({
+        'response_type': 'code',
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'scope': 'openid email profile roles',
+        'state': state,
+    })
+    return redirect(f'{base_url}/o/authorize/?{params}')
+
+
+def oidc_callback(request):
+    """Empfängt den OIDC-Callback, legt den Django-User an und loggt ihn ein."""
+    from django.contrib.auth.models import User, Group
+    from django.contrib.auth import login as auth_login
+
+    # State-Validierung (verhindert CSRF-Angriffe auf den OAuth-Flow)
+    state = request.GET.get('state')
+    if not state or state != request.session.pop('oidc_state', None):
+        messages.error(request, 'Ungültiger Authentifizierungsversuch.')
+        return redirect('/admin/login/')
+
+    code = request.GET.get('code')
+    if not code:
+        messages.error(request, 'Kein Authentifizierungscode erhalten.')
+        return redirect('/admin/login/')
+
+    base_url = getattr(django_settings, 'OIDC_BASE_URL', '').rstrip('/')
+    try:
+        token_resp = _requests.post(
+            f'{base_url}/o/token/',
+            data={
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': getattr(django_settings, 'OIDC_REDIRECT_URI', ''),
+                'client_id': getattr(django_settings, 'OIDC_CLIENT_ID', ''),
+                'client_secret': getattr(django_settings, 'OIDC_CLIENT_SECRET', ''),
+            },
+            timeout=10,
+        )
+        token_resp.raise_for_status()
+        access_token = token_resp.json().get('access_token', '')
+
+        userinfo_resp = _requests.get(
+            f'{base_url}/api/userinfo/',
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10,
+        )
+        userinfo_resp.raise_for_status()
+    except _requests.RequestException:
+        messages.error(request, 'Fehler bei der Verbindung zum Authentifizierungsserver.')
+        return redirect('/admin/login/')
+
+    userinfo = userinfo_resp.json()
+    email = userinfo.get('email', '').lower().strip()
+    name = userinfo.get('name', '')
+    roles = userinfo.get('roles', {})
+    ka_role = roles.get('kursanmeldung', {}).get('role', '')
+
+    if not email or not ka_role:
+        messages.error(request, 'Kein Zugriff auf die Kursanmeldung.')
+        return redirect('/admin/login/')
+
+    # Name aufteilen
+    parts = name.split(' ', 1)
+    first_name = parts[0] if parts else ''
+    last_name = parts[1] if len(parts) > 1 else ''
+
+    # Django-User suchen oder neu anlegen
+    try:
+        user = User.objects.get(email__iexact=email)
+    except User.DoesNotExist:
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+
+    # Zugriffsrechte setzen
+    user.is_staff = True
+    user.is_active = True
+    if first_name:
+        user.first_name = first_name
+    if last_name:
+        user.last_name = last_name
+    user.save(update_fields=['is_staff', 'is_active', 'first_name', 'last_name'])
+
+    # Gruppe 'Kursleitung' synchronisieren
+    kursleitung_group, _ = Group.objects.get_or_create(name='Kursleitung')
+    if ka_role == 'kursleitung':
+        user.groups.add(kursleitung_group)
+    else:
+        user.groups.remove(kursleitung_group)
+
+    auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+    next_url = request.session.pop('oidc_next', '/admin/')
+    return redirect(next_url)

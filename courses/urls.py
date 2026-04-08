@@ -9,4 +9,6 @@ urlpatterns = [
     path('cancel/<uuid:token>/', views.course_cancel, name='course_cancel'),
     path('datenschutz/', views.privacy, name='privacy'),
     path('impressum/', views.impressum, name='impressum'),
+    path('auth/login/', views.oidc_login, name='oidc_login'),
+    path('auth/callback/', views.oidc_callback, name='oidc_callback'),
 ]

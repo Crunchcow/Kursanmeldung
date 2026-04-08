@@ -181,3 +181,9 @@ MS_CLIENT_SECRET = config('MS_CLIENT_SECRET', default='')
 MS_SENDER        = config('MS_SENDER', default='')
 
 SITE_URL = config('SITE_URL', default='http://89.167.0.28')
+
+# ClubAuth OIDC
+OIDC_BASE_URL      = config('OIDC_BASE_URL', default='')
+OIDC_CLIENT_ID     = config('OIDC_CLIENT_ID', default='')
+OIDC_CLIENT_SECRET = config('OIDC_CLIENT_SECRET', default='')
+OIDC_REDIRECT_URI  = config('OIDC_REDIRECT_URI', default='')
