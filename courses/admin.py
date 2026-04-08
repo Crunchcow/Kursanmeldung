@@ -1,10 +1,46 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import User, Group
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from django.urls import reverse, path
 from django.utils.http import urlencode
 from django.http import HttpResponseRedirect, HttpResponse
 from .models import Location, Course, CourseSession, Registration
+
+
+# ---------------------------------------------------------------------------
+# Benutzer- und Gruppen-Verwaltung ist gesperrt — läuft über ClubAuth
+# ---------------------------------------------------------------------------
+
+class ReadOnlyUserAdmin(UserAdmin):
+    """Zeigt User an, erlaubt aber weder Anlage noch Bearbeitung noch Löschung."""
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ReadOnlyGroupAdmin(GroupAdmin):
+    """Zeigt Gruppen an, erlaubt aber weder Anlage noch Bearbeitung noch Löschung."""
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin.site.unregister(User)
+admin.site.unregister(Group)
+admin.site.register(User, ReadOnlyUserAdmin)
+admin.site.register(Group, ReadOnlyGroupAdmin)
 
 
 @admin.register(Location)
