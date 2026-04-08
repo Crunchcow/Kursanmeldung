@@ -47,6 +47,16 @@ admin.site.register(Group, ReadOnlyGroupAdmin)
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
+    def has_view_permission(self, request, obj=None):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_view_permission(request, obj)
+
+    def has_module_permission(self, request):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_module_permission(request)
+
 
 class CourseSessionInline(admin.TabularInline):
     """Einzelne Kurseinheiten direkt am Kurs bearbeiten."""
@@ -70,6 +80,16 @@ class CourseSessionAdmin(admin.ModelAdmin):
     list_display = ('course', 'date', 'is_cancelled', 'note')
     list_filter = ('course', 'is_cancelled')
     ordering = ('course', 'date')
+
+    def has_view_permission(self, request, obj=None):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_view_permission(request, obj)
+
+    def has_module_permission(self, request):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_module_permission(request)
 
 
 @admin.register(Course)
@@ -203,8 +223,18 @@ class CourseAdmin(admin.ModelAdmin):
             return qs.filter(instructor_user=request.user)
         return qs
 
+    def has_view_permission(self, request, obj=None):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_view_permission(request, obj)
+
+    def has_module_permission(self, request):
+        if request.user.groups.filter(name='Kassierer').exists():
+            return False
+        return super().has_module_permission(request)
+
     def has_add_permission(self, request):
-        if request.user.groups.filter(name='Kursleitung').exists():
+        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False
         return super().has_add_permission(request)
 
@@ -478,7 +508,13 @@ class RegistrationAdmin(admin.ModelAdmin):
     def get_actions(self, request):
         actions = super().get_actions(request)
         is_kassierer = request.user.groups.filter(name='Kassierer').exists()
-        if not (request.user.is_superuser or is_kassierer):
+        if is_kassierer:
+            # Kassierer darf nur SEPA-Exporte ausführen
+            sepa_actions = {'export_debits', 'export_wiso_meinverein'}
+            for key in list(actions.keys()):
+                if key not in sepa_actions:
+                    actions.pop(key)
+        elif not request.user.is_superuser:
             actions.pop('export_wiso_meinverein', None)
         return actions
 
