@@ -259,7 +259,7 @@ def oidc_callback(request):
         access_token = token_resp.json().get('access_token', '')
 
         userinfo_resp = _requests.get(
-            f'{internal_url}/api/userinfo/',
+            f'{internal_url}/o/userinfo/',
             headers={'Authorization': f'Bearer {access_token}'},
             timeout=10,
         )
