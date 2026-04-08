@@ -265,7 +265,7 @@ def oidc_callback(request):
         )
         userinfo_resp.raise_for_status()
     except _requests.RequestException as e:
-        messages.error(request, f'Auth-Fehler: {type(e).__name__}: {e}')
+        messages.error(request, 'Fehler bei der Verbindung zum Authentifizierungsserver.')
         return redirect('course_list')
 
     userinfo = userinfo_resp.json()
