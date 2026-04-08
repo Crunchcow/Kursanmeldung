@@ -298,12 +298,20 @@ def oidc_callback(request):
         user.last_name = last_name
     user.save(update_fields=['is_staff', 'is_active', 'first_name', 'last_name'])
 
-    # Gruppe 'Kursleitung' synchronisieren
+    # Gruppen synchronisieren — immer vollständig setzen/entfernen
     kursleitung_group, _ = Group.objects.get_or_create(name='Kursleitung')
+    kassierer_group, _   = Group.objects.get_or_create(name='Kassierer')
+
     if ka_role == 'kursleitung':
         user.groups.add(kursleitung_group)
-    else:
+        user.groups.remove(kassierer_group)
+    elif ka_role == 'kassierer':
+        user.groups.add(kassierer_group)
         user.groups.remove(kursleitung_group)
+    else:
+        # verwaltung o.ä. — keine einschränkende Gruppe nötig
+        user.groups.remove(kursleitung_group)
+        user.groups.remove(kassierer_group)
 
     auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
