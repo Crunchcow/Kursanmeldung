@@ -227,15 +227,17 @@ def oidc_callback(request):
     from django.contrib.auth import login as auth_login
 
     # State-Validierung (verhindert CSRF-Angriffe auf den OAuth-Flow)
+    # WICHTIG: Bei Fehler auf die Startseite leiten, NICHT auf /admin/login/,
+    # da das erneut den OIDC-Flow auslöst und eine Redirect-Schleife erzeugt.
     state = request.GET.get('state')
     if not state or state != request.session.pop('oidc_state', None):
-        messages.error(request, 'Ungültiger Authentifizierungsversuch.')
-        return redirect('/admin/login/')
+        messages.error(request, 'Anmeldung fehlgeschlagen – bitte erneut versuchen.')
+        return redirect('course_list')
 
     code = request.GET.get('code')
     if not code:
         messages.error(request, 'Kein Authentifizierungscode erhalten.')
-        return redirect('/admin/login/')
+        return redirect('course_list')
 
     base_url = getattr(django_settings, 'OIDC_BASE_URL', '').rstrip('/')
     try:
