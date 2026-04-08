@@ -239,10 +239,13 @@ def oidc_callback(request):
         messages.error(request, 'Kein Authentifizierungscode erhalten.')
         return redirect('course_list')
 
-    base_url = getattr(django_settings, 'OIDC_BASE_URL', '').rstrip('/')
+    # OIDC_INTERNAL_URL: interne Adresse für Server-zu-Server-Anfragen (z.B. http://127.0.0.1:8010)
+    # Fällt auf OIDC_BASE_URL zurück wenn nicht gesetzt.
+    internal_url = getattr(django_settings, 'OIDC_INTERNAL_URL',
+                           getattr(django_settings, 'OIDC_BASE_URL', '')).rstrip('/')
     try:
         token_resp = _requests.post(
-            f'{base_url}/o/token/',
+            f'{internal_url}/o/token/',
             data={
                 'grant_type': 'authorization_code',
                 'code': code,
@@ -256,14 +259,14 @@ def oidc_callback(request):
         access_token = token_resp.json().get('access_token', '')
 
         userinfo_resp = _requests.get(
-            f'{base_url}/api/userinfo/',
+            f'{internal_url}/api/userinfo/',
             headers={'Authorization': f'Bearer {access_token}'},
             timeout=10,
         )
         userinfo_resp.raise_for_status()
-    except _requests.RequestException:
+    except _requests.RequestException as e:
         messages.error(request, 'Fehler bei der Verbindung zum Authentifizierungsserver.')
-        return redirect('/admin/login/')
+        return redirect('course_list')
 
     userinfo = userinfo_resp.json()
     email = userinfo.get('email', '').lower().strip()
@@ -273,7 +276,7 @@ def oidc_callback(request):
 
     if not email or not ka_role:
         messages.error(request, 'Kein Zugriff auf die Kursanmeldung.')
-        return redirect('/admin/login/')
+        return redirect('course_list')
 
     # Name aufteilen
     parts = name.split(' ', 1)
