@@ -203,6 +203,11 @@ class CourseAdmin(admin.ModelAdmin):
             return qs.filter(instructor_user=request.user)
         return qs
 
+    def has_add_permission(self, request):
+        if request.user.groups.filter(name='Kursleitung').exists():
+            return False
+        return super().has_add_permission(request)
+
     def has_change_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kursleitung').exists():
             if obj is None:
