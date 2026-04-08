@@ -133,7 +133,7 @@
             {% endif %}
             <a href="{% url 'account_logout' %}">{% trans "Abmelden" %}</a>
         {% else %}
-            <a href="{% url 'account_login' %}">{% trans "Anmelden" %}</a>
+            <a href="{% url 'oidc_login' %}">{% trans "Anmelden" %}</a>
         {% endif %}
     </div>
 </div>
