@@ -1,0 +1,35 @@
+{% extends 'courses/base.html' %}
+{% load i18n %}
+
+{% block title %}Stornierung nicht möglich{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">⏰ Stornierung nicht mehr möglich</h4>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    Leider ist eine Stornierung Ihrer Anmeldung für
+                    <strong>{{ registration.first_name }} {{ registration.last_name }}</strong>
+                    zum Kurs <strong>{{ course.name }}</strong>
+                    nicht mehr möglich.
+                </p>
+                <p class="mb-3">
+                    Stornierungen können nur bis <strong>48 Stunden vor Kursbeginn</strong>
+                    vorgenommen werden, damit Nachrücker noch rechtzeitig informiert werden können.
+                </p>
+                <hr />
+                <p class="mb-1"><strong>Bitte wenden Sie sich direkt an:</strong></p>
+                <p class="mb-1">Monique Kramer</p>
+                <p class="mb-3">
+                    📞 <a href="tel:+491758717397">0175 8717397</a>
+                </p>
+                <a href="{% url 'course_list' %}" class="btn btn-primary">Zur Kursübersicht</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -131,12 +131,26 @@ def course_confirmation(request, token):
 
 
 def course_cancel(request, token):
-    """Storno-Seite: setzt Status auf CANCELLED statt Loeschen."""
+    """Storno-Seite: setzt Status auf CANCELLED statt Loeschen.
+    Stornierung ist nur bis 48 Stunden vor Kursbeginn möglich."""
+    from datetime import date, datetime, timedelta, timezone as dt_tz
+
     registration = get_object_or_404(Registration, cancel_token=token)
 
     # Bereits storniert
     if registration.status == 'CANCELLED':
         return render(request, 'courses/cancel_done.html')
+
+    # 48-Stunden-Sperre prüfen
+    course = registration.course
+    if course.start_date:
+        # Kursbeginn = start_date + start_time, in UTC
+        start_naive = datetime.combine(course.start_date, course.start_time)
+        start_dt = start_naive.replace(tzinfo=dt_tz.utc)
+        now_dt = datetime.now(tz=dt_tz.utc)
+        if now_dt >= start_dt - timedelta(hours=48):
+            return render(request, 'courses/cancel_too_late.html',
+                          {'registration': registration, 'course': course})
 
     if request.method == 'POST':
         registration.status = 'CANCELLED'
