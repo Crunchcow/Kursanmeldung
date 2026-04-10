@@ -60,11 +60,10 @@
 
                 <hr>
                 <p class="text-muted small">
-                    {% if registration.course.instructor %}
-                        Bei Fragen wenden Sie sich an Ihre Kursleitung: <strong>{{ registration.course.instructor }}</strong>{% if registration.course.instructor_user.email %} &ndash; <a href="mailto:{{ registration.course.instructor_user.email }}">{{ registration.course.instructor_user.email }}</a>{% endif %}.
-                    {% else %}
-                        Bei Fragen wenden Sie sich an <a href="mailto:info@sv-westfalia-osterwick.de">info@sv-westfalia-osterwick.de</a>.
-                    {% endif %}
+                    Bei Rückfragen wenden Sie sich bitte an:
+                    Monique Kramer
+                    📞 <a href="tel:+491758717397">0175 8717397</a>
+                    ✉️ <a href="mailto:m.kramer@westfalia-osterwick.de">m.kramer@westfalia-osterwick.de</a>
                 </p>
 
                 {% if registration.status == 'CONFIRMED' %}
