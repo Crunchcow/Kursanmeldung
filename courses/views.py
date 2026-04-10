@@ -227,14 +227,19 @@ def clubauth_sync_user(request):
     kassierer_group, _   = Group.objects.get_or_create(name='Kassierer')
 
     if action == 'remove':
-        # Zugriff entziehen: is_staff entfernen, Gruppen leeren
-        User.objects.filter(username=email).update(is_staff=False)
+        # Zugriff entziehen: is_staff + is_active entfernen, Gruppen leeren
+        User.objects.filter(username=email).update(is_staff=False, is_active=False)
         try:
             user = User.objects.get(username=email)
             user.groups.remove(kursleitung_group, kassierer_group)
         except User.DoesNotExist:
             pass
         return JsonResponse({'status': 'removed', 'email': email})
+
+    if action == 'delete':
+        # User vollständig löschen (FK zu Kursen wird auf NULL gesetzt)
+        deleted, _ = User.objects.filter(username=email).delete()
+        return JsonResponse({'status': 'deleted', 'email': email, 'count': deleted})
 
     user, created = User.objects.update_or_create(
         username=email,
