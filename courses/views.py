@@ -1,8 +1,12 @@
 import secrets as _secrets
 import urllib.parse as _urlparse
 import requests as _requests
+import hmac
+import json
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from .models import Course, Registration
 from django.utils.translation import gettext_lazy as _
 from .forms import RegistrationForm
@@ -185,6 +189,74 @@ def privacy(request):
 
 def impressum(request):
     return render(request, 'courses/impressum.html')
+
+
+# ---------------------------------------------------------------------------
+# Interner Webhook: User-Sync von ClubAuth
+# ---------------------------------------------------------------------------
+
+@csrf_exempt
+@require_POST
+def clubauth_sync_user(request):
+    """Empfängt eine User-Anlage/-Aktualisierung von ClubAuth.
+    Gesichert via INTERNAL_API_KEY im Authorization-Header."""
+    expected_key = getattr(django_settings, 'INTERNAL_API_KEY', '')
+    auth_header  = request.META.get('HTTP_AUTHORIZATION', '')
+    token        = auth_header.removeprefix('Bearer ').strip()
+
+    if not expected_key or not hmac.compare_digest(token, expected_key):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+
+    try:
+        payload = json.loads(request.body)
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    from django.contrib.auth.models import User, Group
+
+    email      = payload.get('email', '').lower().strip()
+    first_name = payload.get('first_name', '')
+    last_name  = payload.get('last_name', '')
+    role       = payload.get('role', '')
+    action     = payload.get('action', 'upsert')  # 'upsert' oder 'remove'
+
+    if not email:
+        return JsonResponse({'error': 'Missing email'}, status=400)
+
+    kursleitung_group, _ = Group.objects.get_or_create(name='Kursleitung')
+    kassierer_group, _   = Group.objects.get_or_create(name='Kassierer')
+
+    if action == 'remove':
+        # Zugriff entziehen: is_staff entfernen, Gruppen leeren
+        User.objects.filter(username=email).update(is_staff=False)
+        try:
+            user = User.objects.get(username=email)
+            user.groups.remove(kursleitung_group, kassierer_group)
+        except User.DoesNotExist:
+            pass
+        return JsonResponse({'status': 'removed', 'email': email})
+
+    user, created = User.objects.update_or_create(
+        username=email,
+        defaults={
+            'email':      email,
+            'first_name': first_name,
+            'last_name':  last_name,
+            'is_staff':   True,
+            'is_active':  True,
+        },
+    )
+
+    if role == 'kursleitung':
+        user.groups.add(kursleitung_group)
+        user.groups.remove(kassierer_group)
+    elif role == 'kassierer':
+        user.groups.add(kassierer_group)
+        user.groups.remove(kursleitung_group)
+    else:
+        user.groups.remove(kursleitung_group, kassierer_group)
+
+    return JsonResponse({'status': 'created' if created else 'updated', 'email': email})
 
 
 # ---------------------------------------------------------------------------
