@@ -22,7 +22,7 @@ Monique Kramer
 Tel.: 0175 8717397
 E-Mail: m.kramer@westfalia-osterwick.de
 
-Möchten Sie Ihre Anmeldung stornieren? Klicken Sie auf diesen Link:
+Möchten Sie Ihre Anmeldung stornieren? Dies ist bis 48 Stunden vor dem Start des Kurses möglich! Klicken Sie auf diesen Link:
 {{ cancel_url }}
 
 Mit freundlichen Grüßen
