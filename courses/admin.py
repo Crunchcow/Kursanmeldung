@@ -70,8 +70,8 @@ class RegistrationInline(admin.TabularInline):
     model = Registration
     extra = 0
     fields = ('first_name', 'last_name', 'email', 'phone', 'status', 'custom_price')
-    readonly_fields = ('first_name', 'last_name', 'email', 'phone', 'status')
     show_change_link = True
+
 
 
 @admin.register(CourseSession)
