@@ -141,9 +141,9 @@ def course_cancel(request, token):
     if registration.status == 'CANCELLED':
         return render(request, 'courses/cancel_done.html')
 
-    # 48-Stunden-Sperre prüfen
+    # 48-Stunden-Sperre prüfen (gilt nicht für Warteliste)
     course = registration.course
-    if course.start_date:
+    if registration.status != 'WAITLIST' and course.start_date:
         # Kursbeginn = start_date + start_time, in UTC
         start_naive = datetime.combine(course.start_date, course.start_time)
         start_dt = start_naive.replace(tzinfo=dt_tz.utc)
