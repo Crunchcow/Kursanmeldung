@@ -30,6 +30,10 @@ CSRF_TRUSTED_ORIGINS = config(
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Sicherheits-Einstellungen für Produktionsbetrieb (DEBUG=False)
+# Eindeutiger Cookie-Name, damit kein Konflikt mit anderen Apps auf derselben IP
+SESSION_COOKIE_NAME = config('SESSION_COOKIE_NAME', default='kursanmeldung_sessionid')
+CSRF_COOKIE_NAME    = config('CSRF_COOKIE_NAME',    default='kursanmeldung_csrftoken')
+
 # SESSION_COOKIE_SECURE und CSRF_COOKIE_SECURE können via .env auf False gesetzt
 # werden, solange noch kein HTTPS eingerichtet ist (vor certbot).
 if not DEBUG:
