@@ -408,11 +408,13 @@ def oidc_callback(request):
     # Zugriffsrechte setzen
     user.is_staff = True
     user.is_active = True
+    # 'admin'-Rolle bekommt Superuser-Status (voller Zugriff)
+    user.is_superuser = (ka_role == 'admin')
     if first_name:
         user.first_name = first_name
     if last_name:
         user.last_name = last_name
-    user.save(update_fields=['is_staff', 'is_active', 'first_name', 'last_name'])
+    user.save(update_fields=['is_staff', 'is_active', 'is_superuser', 'first_name', 'last_name'])
 
     # Gruppen synchronisieren — immer vollständig setzen/entfernen
     kursleitung_group, _ = Group.objects.get_or_create(name='Kursleitung')
@@ -425,7 +427,7 @@ def oidc_callback(request):
         user.groups.add(kassierer_group)
         user.groups.remove(kursleitung_group)
     else:
-        # verwaltung o.ä. — keine einschränkende Gruppe nötig
+        # 'admin' und 'verwaltung': keine einschränkende Gruppe nötig
         user.groups.remove(kursleitung_group)
         user.groups.remove(kassierer_group)
 

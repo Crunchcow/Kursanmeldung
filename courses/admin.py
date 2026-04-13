@@ -55,7 +55,7 @@ class LocationAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_module_permission(request)
+        return request.user.is_active and request.user.is_staff
 
 
 class CourseSessionInline(admin.TabularInline):
@@ -89,7 +89,7 @@ class CourseSessionAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_module_permission(request)
+        return request.user.is_active and request.user.is_staff
 
 
 @admin.register(Course)
@@ -605,9 +605,7 @@ class RegistrationAdmin(admin.ModelAdmin):
     export_wiso_meinverein.short_description = _('WISO MeinVerein – SEPA-Lastschriften exportieren (nur Bestätigt)')
 
     def has_module_permission(self, request):
-        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
-            return True
-        return super().has_module_permission(request)
+        return request.user.is_active and request.user.is_staff
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
