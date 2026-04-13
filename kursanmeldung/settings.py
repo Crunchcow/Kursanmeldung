@@ -200,19 +200,3 @@ OIDC_CLIENT_ID     = config('OIDC_CLIENT_ID', default='')
 OIDC_CLIENT_SECRET = config('OIDC_CLIENT_SECRET', default='')
 OIDC_REDIRECT_URI  = config('OIDC_REDIRECT_URI', default='')
 INTERNAL_API_KEY   = config('INTERNAL_API_KEY', default='')    # geteilter Key für ClubAuth app-users API
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'django_error.log',
-        },
-    },
-    'root': {
-        'handlers': ['file'],
-        'level': 'ERROR',
-    },
-}

@@ -373,16 +373,24 @@ def oidc_callback(request):
     first_name = parts[0] if parts else ''
     last_name = parts[1] if len(parts) > 1 else ''
 
-    # Django-User suchen oder neu anlegen
+    # Django-User suchen oder neu anlegen.
+    # Reihenfolge: 1) username=email (Sync-Konvention), 2) email-Suche, 3) anlegen.
+    # So werden Duplikate (manuell angelegte User mit anderem username) sicher gefunden.
     try:
-        user = User.objects.get(email__iexact=email)
+        user = User.objects.get(username=email)
     except User.DoesNotExist:
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-        )
+        users_by_email = User.objects.filter(email__iexact=email)
+        if users_by_email.exists():
+            # Bevorzuge den mit username=email, sonst den ältesten
+            user = users_by_email.filter(username=email).first() \
+                   or users_by_email.order_by('date_joined').first()
+        else:
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+            )
 
     # Zugriffsrechte setzen
     user.is_staff = True
