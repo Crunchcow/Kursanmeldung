@@ -355,11 +355,10 @@ def oidc_callback(request):
             timeout=10,
         )
         userinfo_resp.raise_for_status()
-    except _requests.RequestException as e:
+        userinfo = userinfo_resp.json()
+    except (_requests.RequestException, ValueError) as e:
         messages.error(request, 'Fehler bei der Verbindung zum Authentifizierungsserver.')
         return redirect('course_list')
-
-    userinfo = userinfo_resp.json()
     email = userinfo.get('email', '').lower().strip()
     name = userinfo.get('name', '')
     roles = userinfo.get('roles', {})

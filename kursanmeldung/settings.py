@@ -105,6 +105,11 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            # Verhindert "database is locked"-Fehler bei gleichzeitigen Requests
+            # (z.B. ClubAuth-Sync-Webhook parallel zum OIDC-Callback)
+            'timeout': 20,
+        },
     }
 }
 
