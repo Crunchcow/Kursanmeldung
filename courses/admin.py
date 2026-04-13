@@ -50,7 +50,7 @@ class LocationAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_view_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_module_permission(self, request):
         if request.user.groups.filter(name='Kassierer').exists():
@@ -84,7 +84,7 @@ class CourseSessionAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_view_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_module_permission(self, request):
         if request.user.groups.filter(name='Kassierer').exists():
@@ -226,29 +226,29 @@ class CourseAdmin(admin.ModelAdmin):
     def has_view_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_view_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_module_permission(self, request):
         if request.user.groups.filter(name='Kassierer').exists():
             return False
-        return super().has_module_permission(request)
+        return request.user.is_active and request.user.is_staff
 
     def has_add_permission(self, request):
         if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False
-        return super().has_add_permission(request)
+        return request.user.is_active and request.user.is_staff
 
     def has_change_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kursleitung').exists():
             if obj is None:
                 return True
             return obj.instructor_user == request.user
-        return super().has_change_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_delete_permission(self, request, obj=None):
         if request.user.groups.filter(name='Kursleitung').exists():
             return False
-        return super().has_delete_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def session_count_display(self, obj):
         count = obj.session_count()
@@ -614,9 +614,7 @@ class RegistrationAdmin(admin.ModelAdmin):
         return qs
 
     def has_view_permission(self, request, obj=None):
-        if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
-            return True
-        return super().has_view_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_add_permission(self, request):
         return False
@@ -624,9 +622,9 @@ class RegistrationAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False if obj else True
-        return super().has_change_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
 
     def has_delete_permission(self, request, obj=None):
         if request.user.groups.filter(name__in=['Kursleitung', 'Kassierer']).exists():
             return False
-        return super().has_delete_permission(request, obj)
+        return request.user.is_active and request.user.is_staff
