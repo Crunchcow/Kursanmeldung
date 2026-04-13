@@ -241,30 +241,43 @@ def clubauth_sync_user(request):
     kassierer_group, _   = Group.objects.get_or_create(name='Kassierer')
 
     if action == 'remove':
-        # Zugriff entziehen: is_staff + is_active entfernen, Gruppen leeren
-        User.objects.filter(username=email).update(is_staff=False, is_active=False)
-        try:
-            user = User.objects.get(username=email)
+        # Zugriff entziehen: is_staff + is_active entfernen, Gruppen leeren.
+        # Suche per E-Mail (case-insensitive) um auch manuell angelegte User zu finden.
+        qs = User.objects.filter(email__iexact=email)
+        qs.update(is_staff=False, is_active=False)
+        for user in qs:
             user.groups.remove(kursleitung_group, kassierer_group)
-        except User.DoesNotExist:
-            pass
         return JsonResponse({'status': 'removed', 'email': email})
 
     if action == 'delete':
         # User vollständig löschen (FK zu Kursen wird auf NULL gesetzt)
-        deleted, _ = User.objects.filter(username=email).delete()
+        deleted, _ = User.objects.filter(email__iexact=email).delete()
         return JsonResponse({'status': 'deleted', 'email': email, 'count': deleted})
 
-    user, created = User.objects.update_or_create(
-        username=email,
-        defaults={
-            'email':      email,
-            'first_name': first_name,
-            'last_name':  last_name,
-            'is_staff':   True,
-            'is_active':  True,
-        },
-    )
+    # Bestehenden User per E-Mail suchen (case-insensitiv), um Duplikate
+    # bei manuell angelegten Accounts mit anderem username zu vermeiden.
+    user = User.objects.filter(username=email).first() \
+           or User.objects.filter(email__iexact=email).order_by('date_joined').first()
+    if user is not None:
+        User.objects.filter(pk=user.pk).update(
+            email=email,
+            first_name=first_name or user.first_name,
+            last_name=last_name or user.last_name,
+            is_staff=True,
+            is_active=True,
+        )
+        user.refresh_from_db()
+        created = False
+    else:
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            is_staff=True,
+            is_active=True,
+        )
+        created = True
 
     if role == 'kursleitung':
         user.groups.add(kursleitung_group)
