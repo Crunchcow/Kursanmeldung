@@ -97,9 +97,9 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'course_type', 'start_date', 'end_date',
         'start_time', 'end_time', 'days',
-        'utilization_display', 'registrations_link', 'attendance_export_link', 'is_closed',
+        'utilization_display', 'registrations_link', 'attendance_export_link', 'is_closed', 'close_on_start',
     )
-    list_editable = ('is_closed',)
+    list_editable = ('is_closed', 'close_on_start')
     list_filter = ('is_closed', 'course_type', 'session_mode', 'days', 'locations', 'start_date', 'instructor_user')
     inlines = [CourseSessionInline, RegistrationInline]
     readonly_fields = ('session_count_display',)
@@ -120,7 +120,7 @@ class CourseAdmin(admin.ModelAdmin):
             ),
         }),
         (_('Anmeldung'), {
-            'fields': ('max_participants', 'price_member', 'price_non_member', 'allow_half', 'is_closed', 'publish_from'),
+            'fields': ('max_participants', 'price_member', 'price_non_member', 'allow_half', 'is_closed', 'close_on_start', 'publish_from'),
         }),
     )
 
