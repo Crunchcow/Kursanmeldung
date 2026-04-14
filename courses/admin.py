@@ -479,7 +479,7 @@ class RegistrationAdmin(admin.ModelAdmin):
         'is_member', 'half_course', 'custom_price',
         'terms_accepted', 'created', 'cancel_token', 'waitlist_position_display',
     )
-    actions = ['export_as_csv', 'export_debits', 'export_wiso_meinverein', 'confirm_and_notify']
+    actions = ['export_as_csv', 'export_wiso_meinverein', 'confirm_and_notify']
 
     def custom_price_display(self, obj):
         if obj.custom_price is not None:
@@ -514,8 +514,8 @@ class RegistrationAdmin(admin.ModelAdmin):
             and not request.user.groups.exists()
         )
         if is_kassierer:
-            # Kassierer darf nur SEPA-Exporte ausführen
-            sepa_actions = {'export_debits', 'export_wiso_meinverein'}
+            # Kassierer darf nur SEPA-Export ausführen
+            sepa_actions = {'export_wiso_meinverein'}
             for key in list(actions.keys()):
                 if key not in sepa_actions:
                     actions.pop(key)
@@ -552,26 +552,6 @@ class RegistrationAdmin(admin.ModelAdmin):
             ])
         return response
     export_as_csv.short_description = str(_('Anmeldungen als CSV exportieren'))
-
-    def export_debits(self, request, queryset):
-        """CSV fuer den Kassierer, nur CONFIRMED."""
-        import csv
-        headers = [
-            str(_('Kurs')), str(_('Vorname')), str(_('Nachname')),
-            str(_('IBAN')), str(_('BIC')), str(_('Kontoinhaber')), str(_('Betrag')),
-        ]
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=einzuege.csv'
-        writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(headers)
-        for reg in queryset.filter(status='CONFIRMED'):
-            amount = '{:.2f}'.format(reg.total_price()).replace('.', ',')
-            writer.writerow([
-                reg.course.name, reg.first_name, reg.last_name,
-                reg.iban, reg.bic or '', reg.account_holder, amount,
-            ])
-        return response
-    export_debits.short_description = _('Einzüge als CSV exportieren')
 
     def export_wiso_meinverein(self, request, queryset):
         """Exportiert NUR bestaetigte Anmeldungen als WISO-MeinVerein-CSV."""
