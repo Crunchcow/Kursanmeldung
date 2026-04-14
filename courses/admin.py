@@ -508,13 +508,18 @@ class RegistrationAdmin(admin.ModelAdmin):
     def get_actions(self, request):
         actions = super().get_actions(request)
         is_kassierer = request.user.groups.filter(name='Kassierer').exists()
+        is_verwaltung = (
+            request.user.is_staff
+            and not request.user.is_superuser
+            and not request.user.groups.exists()
+        )
         if is_kassierer:
             # Kassierer darf nur SEPA-Exporte ausführen
             sepa_actions = {'export_debits', 'export_wiso_meinverein'}
             for key in list(actions.keys()):
                 if key not in sepa_actions:
                     actions.pop(key)
-        elif not request.user.is_superuser:
+        elif not request.user.is_superuser and not is_verwaltung:
             actions.pop('export_wiso_meinverein', None)
         return actions
 
@@ -574,7 +579,12 @@ class RegistrationAdmin(admin.ModelAdmin):
         import csv
 
         is_kassierer = request.user.groups.filter(name='Kassierer').exists()
-        if not (request.user.is_superuser or is_kassierer):
+        is_verwaltung = (
+            request.user.is_staff
+            and not request.user.is_superuser
+            and not request.user.groups.exists()
+        )
+        if not (request.user.is_superuser or is_kassierer or is_verwaltung):
             self.message_user(request, _('Sie haben keine Berechtigung für diesen Export.'), msg.ERROR)
             return
 
