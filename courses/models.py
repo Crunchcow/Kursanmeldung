@@ -66,6 +66,11 @@ class Course(models.Model):
         verbose_name=_('Anmeldung gesperrt'),
         help_text=_('Wenn aktiv, können sich keine neuen Teilnehmer anmelden.'),
     )
+    close_on_start = models.BooleanField(
+        default=False,
+        verbose_name=_('Anmeldung bei Kursbeginn sperren'),
+        help_text=_('Wenn aktiv, ist eine Anmeldung nach dem Startdatum des Kurses nicht mehr möglich.'),
+    )
     instructor = models.CharField(max_length=200, blank=True, verbose_name=_('Kursleitung'))
 
     from django.conf import settings

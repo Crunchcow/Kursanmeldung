@@ -98,8 +98,8 @@ def register(request, course_id):
         messages.error(request, _("Die Anmeldung für diesen Kurs ist derzeit geschlossen."))
         return redirect('course_list')
 
-    # Automatische Sperre: Kurs hat bereits begonnen
-    if course.start_date and course.start_date <= date.today():
+    # Automatische Sperre: Kurs hat bereits begonnen (nur wenn aktiviert)
+    if course.close_on_start and course.start_date and course.start_date <= date.today():
         messages.error(request, _("Die Anmeldung für diesen Kurs ist nicht mehr möglich, da der Kurs bereits begonnen hat."))
         return redirect('course_list')
 
