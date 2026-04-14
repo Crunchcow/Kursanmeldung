@@ -103,7 +103,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_filter = ('is_closed', 'course_type', 'session_mode', 'days', 'locations', 'start_date', 'instructor_user')
     inlines = [CourseSessionInline, RegistrationInline]
     readonly_fields = ('session_count_display',)
-    actions = ['export_attendance_list', 'generate_sessions_action', 'copy_course_with_participants']
+    actions = ['export_attendance_list', 'generate_sessions_action', 'copy_course_with_participants', 'export_sepa_from_course']
 
     fieldsets = (
         (_('Allgemein'), {
@@ -341,6 +341,50 @@ class CourseAdmin(admin.ModelAdmin):
             reverse('admin:courses_course_change', args=[new_course.pk])
         )
     copy_course_with_participants.short_description = _('Kurs kopieren (Folgekurs mit allen Teilnehmern als Warteliste)')
+
+    def export_sepa_from_course(self, request, queryset):
+        """WISO MeinVerein SEPA-CSV für alle bestätigten Anmeldungen der gewählten Kurse."""
+        import csv, io, zipfile
+        from django.contrib import messages as msg
+
+        def make_csv(course):
+            buf = io.StringIO()
+            writer = csv.writer(buf, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([
+                'Vorname', 'Nachname', 'IBAN', 'BIC', 'Kontoinhaber',
+                'Betrag', 'Verwendungszweck', 'Mandatsreferenz', 'Mandatsdatum',
+            ])
+            for reg in course.registration_set.filter(status='CONFIRMED'):
+                amount = '{:.2f}'.format(reg.total_price()).replace('.', ',')
+                purpose = course.name
+                if reg.half_course and course.allow_half:
+                    purpose += ' (Halber Kurs)'
+                writer.writerow([
+                    reg.first_name, reg.last_name, reg.iban, reg.bic or '',
+                    reg.account_holder, amount, purpose,
+                    f'KURS-{reg.id:06d}', reg.created.strftime('%d.%m.%Y'),
+                ])
+            return buf.getvalue()
+
+        courses = list(queryset)
+        if len(courses) == 1:
+            course = courses[0]
+            response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+            safe = course.name.replace('/', '-')
+            response['Content-Disposition'] = f'attachment; filename="SEPA_{safe}.csv"'
+            response.write('\ufeff' + make_csv(course))
+            return response
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for course in courses:
+                safe = course.name.replace('/', '-')
+                zf.writestr(f'SEPA_{safe}.csv', '\ufeff' + make_csv(course))
+        buf.seek(0)
+        response = HttpResponse(buf, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="SEPA_Lastschriften.zip"'
+        return response
+    export_sepa_from_course.short_description = str(_('SEPA-Lastschriften exportieren (WISO MeinVerein)'))
 
     def export_attendance_list(self, request, queryset):
         from openpyxl import Workbook
