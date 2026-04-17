@@ -61,6 +61,7 @@
                     <div><strong>Datum:</strong> {{ course.start_date }} – {{ course.end_date }}</div>
                     <div><strong>Uhrzeit:</strong> {{ course.start_time }}–{{ course.end_time }}</div>
                     <div><strong>Wochentage:</strong> {% for d in course.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+                    <div><strong>Ort:</strong> {% for loc in course.locations.all %}{{ loc.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
                     <div><strong>Anzahl Einheiten:</strong> {{ course.session_count }}
                       {% with dates=course.session_dates %}
                         {% if dates %}
@@ -80,6 +81,7 @@
                         <strong>Zu zahlender Betrag:</strong> <span id="selected-price">0</span>€
                     </div>
                     <button type="submit" class="btn btn-primary">{% trans "Jetzt anmelden" %}</button>
+                    <p class="text-muted small mt-2">* Pflichtangabe</p>
                 </form>
             </div>
         </div>
